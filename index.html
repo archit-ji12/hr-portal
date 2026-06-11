@@ -411,13 +411,10 @@
 </head>
 <body>
 
-    <!-- ==========================================
-       1. AUTHENTICATION MODULE (LOGIN WINDOW)
-       ========================================== -->
     <div id="login-wrapper" class="login-wrapper">
         <div class="login-container">
             <h2>HR Portal Authentication</h2>
-            <form onsubmit="return handleLogin(event)" id="hrms-login-form">
+            <form id="hrms-login-form">
                 <label for="username">User Login Identity</label>
                 <input type="text" id="username" placeholder="Enter Card ID or Full Name" required>
 
@@ -429,9 +426,6 @@
         </div>
     </div>
 
-    <!-- ==========================================
-       2. SIDEBAR NAV FRAMEWORK
-       ========================================== -->
     <div id="app-layout" class="app-layout">
         
         <nav class="sidebar">
@@ -442,7 +436,6 @@
                 <li class="sidebar-item" id="nav-leave" onclick="switchTab('tab-leave')">📅 Leave Application</li>
                 <li class="sidebar-item" id="nav-salary" onclick="switchTab('tab-salary')">💰 Salary Ledger File</li>
                 
-                <!-- SECURE EXCLUSIVES - ADMIN ONLY TABS -->
                 <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Punch Logs</li>
                 <li class="sidebar-item" id="nav-admin-leaves" style="display: none;" onclick="switchTab('tab-admin-leaves')">📥 Review Leave Filings</li>
                 <li class="sidebar-item" id="nav-admin-fines" style="display: none;" onclick="switchTab('tab-admin-fines')">⚠️ Penalty Fine Ledger</li>
@@ -452,9 +445,6 @@
             </div>
         </nav>
 
-        <!-- ==========================================
-           3. MAIN WORKSPACE CONTENT CONTAINER
-           ========================================== -->
         <div class="main-content">
             <header>
                 <div class="user-badge" id="header-profile-badge">System Verification Needed</div>
@@ -463,7 +453,6 @@
 
             <div class="workspace-panel">
 
-                <!-- TAB A: ATTENDANCE PROCESSING CARD -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
@@ -473,7 +462,6 @@
                             Date Context Processing...
                         </div>
 
-                        <!-- AUTOMATED WEEKEND HOLIDAY BANNER INTERFACE DROP CONTAINER -->
                         <div id="weekend-holiday-banner" class="holiday-badge" style="display: none;">
                             🎉 OFFICIAL WEEKEND HOLIDAY: Systems Are Off! No Fines Active Today.
                         </div>
@@ -493,7 +481,6 @@
                     </div>
                 </div>
 
-                <!-- TAB AX: EXECUTIVE WELCOME VIEW CARD -->
                 <div id="tab-admin-dashboard" class="tab-content">
                     <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
                         <h2>Executive Management Console</h2>
@@ -502,7 +489,6 @@
                     </div>
                 </div>
 
-                <!-- TAB B: LEAVE WORKSPACE -->
                 <div id="tab-leave" class="tab-content">
                     <div class="card" id="employee-apply-leave-card">
                         <h2>File Leave Application</h2>
@@ -543,7 +529,6 @@
                     </div>
                 </div>
 
-                <!-- TAB C: SALARY / EXCEL CENTER -->
                 <div id="tab-salary" class="tab-content">
                     <div class="card card-full">
                         <h2>Payroll Master Files Workspace</h2>
@@ -552,7 +537,6 @@
                     </div>
                 </div>
 
-                <!-- TAB D: ADMIN ONLY - RECORD SHEET MONITORS -->
                 <div id="tab-admin-logs" class="tab-content">
                     <div class="card card-full">
                         <h2>Master Employee Attendance Activity Logs</h2>
@@ -574,7 +558,6 @@
                     </div>
                 </div>
 
-                <!-- TAB E: ADMIN ONLY - REVIEW LEAVES -->
                 <div id="tab-admin-leaves" class="tab-content">
                     <div class="card card-full">
                         <h2>Pending Staff Leave Applications Board</h2>
@@ -599,7 +582,6 @@
                     </div>
                 </div>
 
-                <!-- TAB F: ADMIN ONLY - PENALTY FINE LEDGER PANEL -->
                 <div id="tab-admin-fines" class="tab-content">
                     <div class="card card-full" style="border-left: 5px solid #ef4444;">
                         <h2>Master Penalty Fine Matrix</h2>
@@ -626,7 +608,6 @@
         </div>
     </div>
 
-    <!-- AI SUPPORT FLOATING CORE COMPONENT MODULE -->
     <div class="chat-widget">
         <button class="chat-toggle" onclick="toggleChat()">🤖</button>
         <div class="chat-box" id="chat-box">
@@ -644,12 +625,8 @@
         </div>
     </div>
 
-    <!-- INCLUDE THE OFFICIAL SUPABASE CDN INTEGRATION LAYER -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- ==========================================
-       4. SYSTEM BACKEND LOGIC CORE ENGINES
-       ========================================== -->
     <script>
         const SUPABASE_URL = "https://diwsdtmnmyvmbzotmqhe.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_6JtNZIXRnLoesTP7r8I92g_nCX2CUGo";
@@ -664,10 +641,15 @@
         let currentUser = null;
         const trackedEmployeeDatabase = ["1001"]; 
 
-        // INITIAL LOGIN LAYER VISIBILITY RESET
+        // SAFE SUBMIT HANDLER ROUTER ATTACHED ON PAGE LAUNCH
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('app-layout').style.display = 'none';
             document.getElementById('login-wrapper').style.display = 'flex';
+
+            const formElement = document.getElementById('hrms-login-form');
+            if(formElement) {
+                formElement.addEventListener('submit', handleLogin);
+            }
         });
 
         // WEEKEND HOLIDAY POLICIES EVALUATOR ENGINE (Sundays & Even Saturdays)
@@ -698,7 +680,7 @@
             const adminBanner = document.getElementById('admin-live-timestamp-banner');
             if(adminBanner) adminBanner.innerText = `📅 System Active Calendar: ${dateString} | Live Server Run: ${timeString}`;
 
-            // CONTROL HOLIDAY BANNER VIEW ON TRIPS
+            // CONTROL HOLIDAY BANNER VIEW
             const holidayCheck = checkIfHoliday(now);
             const holidayBanner = document.getElementById('weekend-holiday-banner');
             const interactionArea = document.getElementById('attendance-interactive-actions');
@@ -729,7 +711,7 @@
             if(targetedNav) targetedNav.classList.add('active');
         }
 
-        // PREVENT INTERCEPT FORM REDIRECTS ON EXECUTION
+        // ONE SINGLE CLEAN AUTH FUNCTION EXECUTED ON SUBMIT
         function handleLogin(event) {
             if (event) {
                 event.preventDefault();
@@ -754,7 +736,6 @@
             else {
                 alert("Access Denied: Incorrect login credentials.");
             }
-            return false;
         }
 
         function activateApplicationView() {
@@ -803,7 +784,7 @@
                     statusElement.innerText = currentPunchState;
                     statusElement.style.color = currentPunchState === "Punch In" ? "#10b981" : (currentPunchState === "Punch Out" ? "#ef4444" : "#64748b");
                 } catch(err) {
-                    document.getElementById('punch-status-text').innerText = "Online Checking Pending...";
+                    document.getElementById('punch-status-text').innerText = "Database Checking...";
                 }
 
                 fetchEmployeeLeavesFromCloud();
@@ -839,7 +820,6 @@
             }
 
             try {
-                // Stream log parameters to online cloud infrastructure tables
                 await supabase.from('global_company_logs').insert([{
                     name: currentUser.name,
                     empId: currentUser.id,
@@ -854,7 +834,7 @@
                         name: currentUser.name, empId: currentUser.id, time_captured: timestampString,
                         fine: "₹284", classification: "Late Arrival Fine", excel_status: "Pending Admin Choice"
                     }]);
-                    alert(`⚠️ Late Arrival Registered! A ₹284 fine has been logged into the shared cloud tables.`);
+                    alert(`⚠️ Late Arrival Registered! A ₹284 fine has been logged to the cloud storage ledger.`);
                     setupDashboard();
                     return;
                 }
@@ -865,7 +845,7 @@
                         name: currentUser.name, empId: currentUser.id, time_captured: timestampString,
                         fine: "₹284", classification: "Early Departure Fine", excel_status: "Pending Admin Choice"
                     }]);
-                    alert(`⚠️ Early Departure Logged! A ₹284 fine has been logged into the shared cloud tables.`);
+                    alert(`⚠️ Early Departure Logged! A ₹284 fine has been logged to the cloud storage ledger.`);
                     setupDashboard();
                     return;
                 }
@@ -873,13 +853,13 @@
                 alert(`${actionType} successfully processed at ${timestampString}!`);
                 setupDashboard();
             } catch(err) {
-                alert("Synchronization Fail: Verify your live internet connection parameters.");
+                alert("Network Error: Could not connect to database layers.");
             }
         }
 
         async function fetchLogsFromCloud() {
             const tableBody = document.getElementById('log-table-body');
-            tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Syncing with Cloud Database Row Arrays...</td></tr>";
+            tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Syncing with Cloud Database Arrays...</td></tr>";
 
             try {
                 const { data } = await supabase.from('global_company_logs').select('*').order('created_at', { ascending: false });
@@ -896,7 +876,7 @@
                     </tr>`;
                 });
             } catch(e) {
-                tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Table Scan Failure. Confirm CORS allowed settings are set to asterisk *.</td></tr>";
+                tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Table Sync Failure.</td></tr>";
             }
         }
 
