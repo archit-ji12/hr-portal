@@ -417,7 +417,6 @@
     <div id="login-wrapper" class="login-wrapper">
         <div class="login-container">
             <h2>HR Portal Authentication</h2>
-            <!-- Reinforcement form intercept configuration handles phone rendering without crashing -->
             <form onsubmit="return handleLogin(event)" id="hrms-login-form">
                 <label for="username">User Login Identity</label>
                 <input type="text" id="username" placeholder="Enter Card ID or Full Name" required>
@@ -645,37 +644,27 @@
         </div>
     </div>
 
+    <!-- INCLUDE THE OFFICIAL SUPABASE CDN INTEGRATION LAYER -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <!-- ==========================================
        4. SYSTEM BACKEND LOGIC CORE ENGINES
        ========================================== -->
     <script>
-        // High-Performance Sandbox Storage Helper Functions
-        function loadStorageData(key, fallbackValue) {
-            try {
-                const data = localStorage.getItem(key);
-                return data ? JSON.parse(data) : fallbackValue;
-            } catch (e) {
-                return fallbackValue;
-            }
+        const SUPABASE_URL = "https://diwsdtmnmyvmbzotmqhe.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_6JtNZIXRnLoesTP7r8I92g_nCX2CUGo";
+
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (err) {
+            console.error("Supabase Initialization Error:", err);
         }
 
-        function saveStorageData(key, value) {
-            try {
-                localStorage.setItem(key, JSON.stringify(value));
-            } catch (e) {}
-        }
+        let currentUser = null;
+        const trackedEmployeeDatabase = ["1001"]; 
 
-        // Initialize Native Internal Arrays
-        let globalCompanyLogs = loadStorageData('hrms_logs', []);
-        let globalCompanyLeaves = loadStorageData('hrms_leaves', []);
-        let employeePunchStates = loadStorageData('hrms_states', {});
-        let penaltyDeductions = loadStorageData('hrms_fines', []);
-        let dailyCheckInTracker = loadStorageData('hrms_checkins', {});
-        let lastSystemTrackedDate = loadStorageData('hrms_date', new Date().toLocaleDateString());
-
-        const trackedEmployeeDatabase = ["1001"];
-        const employeeNameReference = {"1001": "Parthik Pokhriyal"};
-
+        // INITIAL LOGIN LAYER VISIBILITY RESET
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('app-layout').style.display = 'none';
             document.getElementById('login-wrapper').style.display = 'flex';
@@ -709,7 +698,7 @@
             const adminBanner = document.getElementById('admin-live-timestamp-banner');
             if(adminBanner) adminBanner.innerText = `📅 System Active Calendar: ${dateString} | Live Server Run: ${timeString}`;
 
-            // CONTROL HOLIDAY BANNER
+            // CONTROL HOLIDAY BANNER VIEW ON TRIPS
             const holidayCheck = checkIfHoliday(now);
             const holidayBanner = document.getElementById('weekend-holiday-banner');
             const interactionArea = document.getElementById('attendance-interactive-actions');
@@ -722,59 +711,6 @@
                     holidayBanner.style.display = "none";
                     interactionArea.style.display = "block";
                 }
-            }
-
-            // AUTOMATED MIDNIGHT SHIFT REFRESH PIPELINE
-            const currentTodayStr = now.toLocaleDateString();
-            if (currentTodayStr !== lastSystemTrackedDate) {
-                const yesterdayDate = new Date();
-                yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-
-                if (!checkIfHoliday(yesterdayDate).isHoliday) {
-                    trackedEmployeeDatabase.forEach(empId => {
-                        const loggedIn = dailyCheckInTracker[empId] === true;
-                        const currentStatus = employeePunchStates[empId] || "Not Punched In";
-
-                        // Condition A: Failed to record any punch marker (Absent Fine)
-                        if (!loggedIn) {
-                            penaltyDeductions.push({
-                                id: Date.now() + Math.random(),
-                                name: employeeNameReference[empId] || "Staff " + empId,
-                                empId: empId,
-                                time_captured: "12:00 AM (Midnight Scan)",
-                                fine: "₹568",
-                                classification: "Absenteeism Fine (No Punch In)",
-                                excel_status: "Pending Admin Choice"
-                            });
-                        }
-                        // Condition B: Punched in, but abandoned dashboard without punching out
-                        else if (currentStatus === "Punch In") {
-                            penaltyDeductions.push({
-                                id: Date.now() + Math.random(),
-                                name: employeeNameReference[empId] || "Staff " + empId,
-                                empId: empId,
-                                time_captured: "12:00 AM (Midnight Scan)",
-                                fine: "₹568",
-                                classification: "Missed Punch Out Penalty",
-                                excel_status: "Pending Admin Choice"
-                            });
-                        }
-                    });
-                }
-
-                // Flush tracking blocks for next calendar sequence
-                globalCompanyLogs = [];
-                employeePunchStates = {};
-                dailyCheckInTracker = {};
-                lastSystemTrackedDate = currentTodayStr;
-
-                saveStorageData('hrms_logs', globalCompanyLogs);
-                saveStorageData('hrms_states', employeePunchStates);
-                saveStorageData('hrms_checkins', dailyCheckInTracker);
-                saveStorageData('hrms_date', lastSystemTrackedDate);
-                saveStorageData('hrms_fines', penaltyDeductions);
-
-                if (currentUser) setupDashboard();
             }
         }
         setInterval(runLiveClockEngine, 1000);
@@ -793,7 +729,7 @@
             if(targetedNav) targetedNav.classList.add('active');
         }
 
-        // FULLY REINFORCED SUBMIT RECOVERY INTERCEPTOR
+        // PREVENT INTERCEPT FORM REDIRECTS ON EXECUTION
         function handleLogin(event) {
             if (event) {
                 event.preventDefault();
@@ -827,7 +763,7 @@
             setupDashboard();
         }
 
-        function setupDashboard() {
+        async function setupDashboard() {
             document.getElementById('header-profile-badge').innerText = `Active Session: ${currentUser.name} (${currentUser.id})`;
 
             if (currentUser.role === "admin") {
@@ -841,9 +777,9 @@
                 document.getElementById('employee-view-history-card').style.display = 'none';
                 
                 switchTab('tab-admin-dashboard'); 
-                renderLogs();
-                renderLeaveRequests();
-                renderAdminFinesLedger();
+                fetchLogsFromCloud();
+                fetchLeavesFromCloud();
+                fetchFinesFromCloud();
             } else {
                 document.getElementById('nav-attendance').style.display = 'flex';
                 document.getElementById('nav-admin-dashboard').style.display = 'none';
@@ -856,19 +792,28 @@
                 
                 switchTab('tab-attendance');
                 
-                const currentPunchState = employeePunchStates[currentUser.id] || "Not Punched In";
-                const statusElement = document.getElementById('punch-status-text');
-                statusElement.innerText = currentPunchState === "Punch In" ? "Punched In" : (currentPunchState === "Punch Out" ? "Punched Out" : currentPunchState);
-                statusElement.style.color = currentPunchState === "Punch In" ? "#10b981" : (currentPunchState === "Punch Out" ? "#ef4444" : "#64748b");
+                try {
+                    const { data } = await supabase.from('global_company_logs')
+                        .select('action')
+                        .eq('empId', currentUser.id)
+                        .order('created_at', { ascending: false }).limit(1);
 
-                renderEmployeeLeaveTracker();
+                    const currentPunchState = data && data.length > 0 ? data[0].action : "Not Punched In";
+                    const statusElement = document.getElementById('punch-status-text');
+                    statusElement.innerText = currentPunchState;
+                    statusElement.style.color = currentPunchState === "Punch In" ? "#10b981" : (currentPunchState === "Punch Out" ? "#ef4444" : "#64748b");
+                } catch(err) {
+                    document.getElementById('punch-status-text').innerText = "Online Checking Pending...";
+                }
+
+                fetchEmployeeLeavesFromCloud();
             }
         }
 
         // ==========================================
-        // LOCAL PROCESSING: LOGS AND FINE ACTIONS
+        // CLOUD OPERATIONS: ATTENDANCE PUNCHING
         // ==========================================
-        function recordAttendance(actionType) {
+        async function recordAttendance(actionType) {
             const now = new Date();
             if (checkIfHoliday(now).isHoliday) {
                 alert("System Intercept: Weekend holiday active.");
@@ -878,134 +823,141 @@
             const timestampString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             
             if (actionType === 'Punch In') {
-                if (dailyCheckInTracker[currentUser.id] === true) {
-                    alert(`⛔ Access Restricted: You have already checked in for today's shift.`);
+                const todayStr = now.toLocaleDateString();
+                try {
+                    const { data } = await supabase.from('global_company_logs')
+                        .select('id')
+                        .eq('empId', currentUser.id)
+                        .eq('action', 'Punch In')
+                        .eq('date_tag', todayStr);
+
+                    if (data && data.length > 0) {
+                        alert(`⛔ Access Restricted: You have already checked in for today's shift.`);
+                        return;
+                    }
+                } catch(e){}
+            }
+
+            try {
+                // Stream log parameters to online cloud infrastructure tables
+                await supabase.from('global_company_logs').insert([{
+                    name: currentUser.name,
+                    empId: currentUser.id,
+                    action: actionType,
+                    time_captured: timestampString,
+                    date_tag: now.toLocaleDateString()
+                }]);
+
+                // LATE ARRIVAL INFRACTION DETECTOR (AFTER 1:00 PM)
+                if (actionType === 'Punch In' && now.getHours() >= 13) {
+                    await supabase.from('penalty_deductions').insert([{
+                        name: currentUser.name, empId: currentUser.id, time_captured: timestampString,
+                        fine: "₹284", classification: "Late Arrival Fine", excel_status: "Pending Admin Choice"
+                    }]);
+                    alert(`⚠️ Late Arrival Registered! A ₹284 fine has been logged into the shared cloud tables.`);
+                    setupDashboard();
                     return;
                 }
-                dailyCheckInTracker[currentUser.id] = true;
-            }
 
-            if (actionType === 'Punch Out' && !dailyCheckInTracker[currentUser.id]) {
-                alert(`⛔ Operation Blocked: You must record a 'Punch In' first.`);
-                return;
-            }
+                // EARLY DEPARTURE INFRACTION DETECTOR (BEFORE 8:00 PM)
+                if (actionType === 'Punch Out' && now.getHours() < 20) {
+                    await supabase.from('penalty_deductions').insert([{
+                        name: currentUser.name, empId: currentUser.id, time_captured: timestampString,
+                        fine: "₹284", classification: "Early Departure Fine", excel_status: "Pending Admin Choice"
+                    }]);
+                    alert(`⚠️ Early Departure Logged! A ₹284 fine has been logged into the shared cloud tables.`);
+                    setupDashboard();
+                    return;
+                }
 
-            globalCompanyLogs.push({
-                name: currentUser.name,
-                empId: currentUser.id,
-                action: actionType === 'Punch In' ? 'Punch In' : 'Punch Out',
-                time_captured: timestampString,
-                date_tag: now.toLocaleDateString()
-            });
-
-            employeePunchStates[currentUser.id] = actionType === 'Punch In' ? 'Punch In' : 'Punch Out';
-
-            saveStorageData('hrms_logs', globalCompanyLogs);
-            saveStorageData('hrms_states', employeePunchStates);
-            saveStorageData('hrms_checkins', dailyCheckInTracker);
-
-            // ARRIVAL PAST 1:00 PM DETECTOR
-            if (actionType === 'Punch In' && now.getHours() >= 13) {
-                penaltyDeductions.push({
-                    id: Date.now() + Math.random(),
-                    name: currentUser.name, empId: currentUser.id, time_captured: timestampString,
-                    fine: "₹284", classification: "Late Arrival Fine", excel_status: "Pending Admin Choice"
-                });
-                saveStorageData('hrms_fines', penaltyDeductions);
-                alert(`⚠️ Late Arrival Registered! A ₹284 fine has been logged.`);
+                alert(`${actionType} successfully processed at ${timestampString}!`);
                 setupDashboard();
-                return;
+            } catch(err) {
+                alert("Synchronization Fail: Verify your live internet connection parameters.");
             }
-
-            // EARLY DEPARTURE BEFORE 8:00 PM DETECTOR
-            if (actionType === 'Punch Out' && now.getHours() < 20) {
-                penaltyDeductions.push({
-                    id: Date.now() + Math.random(),
-                    name: currentUser.name, empId: currentUser.id, time_captured: timestampString,
-                    fine: "₹284", classification: "Early Departure Fine", excel_status: "Pending Admin Choice"
-                });
-                saveStorageData('hrms_fines', penaltyDeductions);
-                alert(`⚠️ Early Departure Logged! A ₹284 fine has been logged.`);
-                setupDashboard();
-                return;
-            }
-
-            alert(`${actionType} successfully processed at ${timestampString}!`);
-            setupDashboard();
         }
 
-        function renderLogs() {
+        async function fetchLogsFromCloud() {
             const tableBody = document.getElementById('log-table-body');
-            tableBody.innerHTML = "";
-            if (globalCompanyLogs.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">No check-in markers processed today.</td></tr>`;
-                return;
-            }
-            for (let i = globalCompanyLogs.length - 1; i >= 0; i--) {
-                const log = globalCompanyLogs[i];
-                tableBody.innerHTML += `<tr>
-                    <td><strong>${log.name}</strong></td><td>${log.empId}</td>
-                    <td style="color: ${log.action === 'Punch In' ? '#10b981' : '#ef4444'}; font-weight:bold;">${log.action}</td>
-                    <td>${log.time_captured} (${log.date_tag})</td>
-                </tr>`;
-            }
-        }
+            tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Syncing with Cloud Database Row Arrays...</td></tr>";
 
-        function clearLogs() {
-            if (confirm("Confirm wiping company shift registers permanently?")) {
-                globalCompanyLogs = [];
-                employeePunchStates = {};
-                penaltyDeductions = [];
-                dailyCheckInTracker = {};
-
-                saveStorageData('hrms_logs', globalCompanyLogs);
-                saveStorageData('hrms_states', employeePunchStates);
-                saveStorageData('hrms_fines', penaltyDeductions);
-                saveStorageData('hrms_checkins', dailyCheckInTracker);
-
-                renderLogs();
-                renderAdminFinesLedger();
-            }
-        }
-
-        function renderAdminFinesLedger() {
-            const tbody = document.getElementById('admin-fines-table-body');
-            tbody.innerHTML = "";
-            if (penaltyDeductions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No active penalty infractions documented today.</td></tr>`;
-                return;
-            }
-            penaltyDeductions.forEach(item => {
-                let badgeClass = item.excel_status === 'Stayed & Compiled' ? 'badge-approved' : (item.excel_status === 'Revoked / Removed' ? 'badge-rejected' : 'badge-pending');
-                let actionButtons = item.excel_status === 'Pending Admin Choice' ? `
-                    <button class="btn-action btn-stay" onclick="manageLocalFine(${item.id}, 'stay')">🟢 Stay Fine</button>
-                    <button class="btn-action btn-reject" onclick="manageLocalFine(${item.id}, 'remove')">❌ Remove Fine</button>
-                ` : `<span style="color:#777; font-size:12px;">Settled</span>`;
-
-                tbody.innerHTML += `<tr>
-                    <td><strong>${item.name}</strong></td><td>${item.empId}</td><td>${item.time_captured}</td>
-                    <td style="color:#ef4444; font-weight:700;">${item.fine} - [${item.classification}]</td>
-                    <td><span class="badge ${badgeClass}">${item.excel_status}</span></td><td>${actionButtons}</td>
-                </tr>`;
-            });
-        }
-
-        function manageLocalFine(fineId, decision) {
-            if (decision === 'remove') {
-                penaltyDeductions = penaltyDeductions.filter(item => item.id !== fineId);
-                alert("Wiped: Fine has been completely removed from the registers.");
-            } else {
-                penaltyDeductions = penaltyDeductions.map(item => {
-                    if (item.id === fineId) item.excel_status = 'Stayed & Compiled';
-                    return item;
+            try {
+                const { data } = await supabase.from('global_company_logs').select('*').order('created_at', { ascending: false });
+                tableBody.innerHTML = "";
+                if (!data || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">No check-in markers processed today.</td></tr>`;
+                    return;
+                }
+                data.forEach(log => {
+                    tableBody.innerHTML += `<tr>
+                        <td><strong>${log.name}</strong></td><td>${log.empId}</td>
+                        <td style="color: ${log.action === 'Punch In' ? '#10b981' : '#ef4444'}; font-weight:bold;">${log.action}</td>
+                        <td>${log.time_captured} (${log.date_tag})</td>
+                    </tr>`;
                 });
-                alert("Locked: Fine has been compiled for spreadsheet exports.");
+            } catch(e) {
+                tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Table Scan Failure. Confirm CORS allowed settings are set to asterisk *.</td></tr>";
             }
-            saveStorageData('hrms_fines', penaltyDeductions);
-            renderAdminFinesLedger();
         }
 
-        function submitLeaveRequest(e) {
+        async function clearLogs() {
+            if (confirm("Confirm wiping company shift registers on the cloud database permanently?")) {
+                try {
+                    await supabase.from('global_company_logs').delete().neq('empId', '0');
+                    await supabase.from('penalty_deductions').delete().neq('empId', '0');
+                } catch(e){}
+                fetchLogsFromCloud();
+                fetchFinesFromCloud();
+            }
+        }
+
+        // ==========================================
+        // CLOUD OPERATIONS: PENALTY FINE MANAGEMENT
+        // ==========================================
+        async function fetchFinesFromCloud() {
+            const tbody = document.getElementById('admin-fines-table-body');
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Syncing with Cloud...</td></tr>";
+
+            try {
+                const { data } = await supabase.from('penalty_deductions').select('*').order('created_at', { ascending: false });
+                tbody.innerHTML = "";
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No active penalty infractions documented today.</td></tr>`;
+                    return;
+                }
+                data.forEach(item => {
+                    let badgeClass = item.excel_status === 'Stayed & Compiled' ? 'badge-approved' : (item.excel_status === 'Revoked / Removed' ? 'badge-rejected' : 'badge-pending');
+                    let actionButtons = item.excel_status === 'Pending Admin Choice' ? `
+                        <button class="btn-action btn-stay" onclick="manageCloudFine(${item.id}, 'stay')">🟢 Stay Fine</button>
+                        <button class="btn-action btn-reject" onclick="manageCloudFine(${item.id}, 'remove')">❌ Remove Fine</button>
+                    ` : `<span style="color:#777; font-size:12px;">Settled</span>`;
+
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${item.name}</strong></td><td>${item.empId}</td><td>${item.time_captured}</td>
+                        <td style="color:#ef4444; font-weight:700;">${item.fine} - [${item.classification}]</td>
+                        <td><span class="badge ${badgeClass}">${item.excel_status}</span></td><td>${actionButtons}</td>
+                    </tr>`;
+                });
+            } catch(e){}
+        }
+
+        async function manageCloudFine(fineId, decision) {
+            try {
+                if (decision === 'remove') {
+                    await supabase.from('penalty_deductions').delete().eq('id', fineId);
+                    alert("Wiped: Fine has been completely removed and deleted from the cloud database.");
+                } else {
+                    await supabase.from('penalty_deductions').update({ excel_status: 'Stayed & Compiled' }).eq('id', fineId);
+                    alert("Locked: Fine has been locked into cloud compilation parameters.");
+                }
+            } catch(e){}
+            fetchFinesFromCloud();
+        }
+
+        // ==========================================
+        // CLOUD OPERATIONS: LEAVE MANAGEMENT APPLICATIONS
+        // ==========================================
+        async function submitLeaveRequest(e) {
             e.preventDefault();
             const startStr = new Date(document.getElementById('form-leave-start').value);
             const endStr = new Date(document.getElementById('form-leave-end').value);
@@ -1016,77 +968,81 @@
             }
             const activeDays = Math.ceil(Math.abs(endStr - startStr) / (1000 * 60 * 60 * 24)) + 1;
 
-            globalCompanyLeaves.push({
-                id: Date.now(),
-                empName: currentUser.name,
-                empId: currentUser.id,
-                type: document.getElementById('form-leave-type').value,
-                dateRange: `${startStr.toLocaleDateString()} to ${endStr.toLocaleDateString()}`,
-                daysCount: activeDays,
-                reason: document.getElementById('form-leave-reason').value,
-                status: 'Pending',
-                remarks: '--'
-            });
-
-            saveStorageData('hrms_leaves', globalCompanyLeaves);
-            alert(`Filing successful. Total Duration computed: ${activeDays} Work Day(s).`);
+            try {
+                await supabase.from('global_company_leaves').insert([{
+                    empName: currentUser.name,
+                    empId: currentUser.id,
+                    type: document.getElementById('form-leave-type').value,
+                    dateRange: `${startStr.toLocaleDateString()} to ${endStr.toLocaleDateString()}`,
+                    daysCount: activeDays,
+                    reason: document.getElementById('form-leave-reason').value,
+                    status: 'Pending',
+                    remarks: '--'
+                }]);
+                alert(`Filing successful. Total Duration computed: ${activeDays} Work Day(s). Request streaming to cloud.`);
+            } catch(err){}
             e.target.reset();
             setupDashboard();
         }
 
-        function renderLeaveRequests() {
+        async function fetchLeavesFromCloud() {
             const tableBody = document.getElementById('admin-leave-table-body');
-            tableBody.innerHTML = "";
-            if (globalCompanyLeaves.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No leave applications on the dashboard registry.</td></tr>`;
-                return;
-            }
-            globalCompanyLeaves.forEach(req => {
-                let statusBadgeClass = req.status === 'Approved' ? 'badge-approved' : (req.status === 'Rejected' ? 'badge-rejected' : 'badge-pending');
-                let actionsColumnArea = req.status === 'Pending' ? `
-                    <input type="text" id="remark-${req.id}" class="admin-remark-input" placeholder="Remarks Summary...">
-                    <button class="btn-action" onclick="updateLocalLeave(${req.id}, 'Approved')">Approve</button>
-                    <button class="btn-action btn-reject" onclick="updateLocalLeave(${req.id}, 'Rejected')">Reject</button>
-                ` : `<span style="color:#64748b; font-size:12px;">Processed: "<em>${req.remarks}</em>"</span>`;
+            tableBody.innerHTML = "<tr><td colspan='8' style='text-align:center;'>Syncing Leave Board...</td></tr>";
 
-                tableBody.innerHTML += `<tr>
-                    <td><strong>${req.empName}</strong></td><td>${req.empId}</td><td>${req.type}</td><td>${req.dateRange}</td>
-                    <td><strong>${req.daysCount}</strong></td><td>"${req.reason}"</td>
-                    <td><span class="badge ${statusBadgeClass}">${req.status}</span></td><td>${actionsColumnArea}</td>
-                </tr>`;
-            });
+            try {
+                const { data } = await supabase.from('global_company_leaves').select('*').order('created_at', { ascending: false });
+                tableBody.innerHTML = "";
+                if (!data || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No leave applications on the dashboard registry.</td></tr>`;
+                    return;
+                }
+                data.forEach(req => {
+                    let statusBadgeClass = req.status === 'Approved' ? 'badge-approved' : (req.status === 'Rejected' ? 'badge-rejected' : 'badge-pending');
+                    let actionsColumnArea = req.status === 'Pending' ? `
+                        <input type="text" id="remark-${req.id}" class="admin-remark-input" placeholder="Remarks Summary...">
+                        <button class="btn-action" onclick="updateCloudLeave(${req.id}, 'Approved')">Approve</button>
+                        <button class="btn-action btn-reject" onclick="updateCloudLeave(${req.id}, 'Rejected')">Reject</button>
+                    ` : `<span style="color:#64748b; font-size:12px;">Processed: "<em>${req.remarks}</em>"</span>`;
+
+                    tableBody.innerHTML += `<tr>
+                        <td><strong>${req.empName}</strong></td><td>${req.empId}</td><td>${req.type}</td><td>${req.dateRange}</td>
+                        <td><strong>${req.daysCount}</strong></td><td>"${req.reason}"</td>
+                        <td><span class="badge ${statusBadgeClass}">${req.status}</span></td><td>${actionsColumnArea}</td>
+                    </tr>`;
+                });
+            } catch(e){}
         }
 
-        function updateLocalLeave(requestId, nextStatus) {
+        async function updateCloudLeave(requestId, nextStatus) {
             const textElement = document.getElementById(`remark-${requestId}`);
             const feedbackChoice = textElement && textElement.value.trim() ? textElement.value.trim() : "Processed by Corporate Management";
 
-            globalCompanyLeaves = globalCompanyLeaves.map(req => {
-                if (req.id === requestId) { req.status = nextStatus; req.remarks = feedbackChoice; }
-                return req;
-            });
-
-            saveStorageData('hrms_leaves', globalCompanyLeaves);
-            alert(`Filing successfully updated to status: ${nextStatus}`);
-            renderLeaveRequests();
+            try {
+                await supabase.from('global_company_leaves').update({ status: nextStatus, remarks: feedbackChoice }).eq('id', requestId);
+                alert(`Filing successfully updated to status: ${nextStatus}`);
+            } catch(e){}
+            fetchLeavesFromCloud();
         }
 
-        function renderEmployeeLeaveTracker() {
+        async function fetchEmployeeLeavesFromCloud() {
             const tableBody = document.getElementById('employee-tracker-table-body');
-            tableBody.innerHTML = "";
-            const personalFilings = globalCompanyLeaves.filter(req => req.empId === currentUser.id);
+            tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Syncing Leave History...</td></tr>";
 
-            if (personalFilings.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No historical leave submissions linked to this account.</td></tr>`;
-                return;
-            }
-            personalFilings.forEach(req => {
-                let statusBadgeClass = req.status === 'Approved' ? 'badge-approved' : (req.status === 'Rejected' ? 'badge-rejected' : 'badge-pending');
-                tableBody.innerHTML += `<tr>
-                    <td><strong>${req.type}</strong></td><td>${req.dateRange}</td><td><strong>${req.daysCount} Days</strong></td>
-                    <td><span class="badge ${statusBadgeClass}">${req.status}</span></td><td>${req.remarks}</td>
-                </tr>`;
-            });
+            try {
+                const { data } = await supabase.from('global_company_leaves').select('*').eq('empId', currentUser.id).order('created_at', { ascending: false });
+                tableBody.innerHTML = "";
+                if (!data || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No historical leave submissions linked to this account.</td></tr>`;
+                    return;
+                }
+                data.forEach(req => {
+                    let statusBadgeClass = req.status === 'Approved' ? 'badge-approved' : (req.status === 'Rejected' ? 'badge-rejected' : 'badge-pending');
+                    tableBody.innerHTML += `<tr>
+                        <td><strong>${req.type}</strong></td><td>${req.dateRange}</td><td><strong>${req.daysCount} Days</strong></td>
+                        <td><span class="badge ${statusBadgeClass}">${req.status}</span></td><td>${req.remarks}</td>
+                    </tr>`;
+                });
+            } catch(e){}
         }
 
         function handleLogout() {
