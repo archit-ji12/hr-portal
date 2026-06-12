@@ -4,286 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise HRMS Portal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Modern Corporate Interface Tokens */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
+        /* Modern Corporate Interface Design Tokens */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body { background-color: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; width: 100%; }
+        
+        /* 1. AUTHENTICATION COMPONENT OVERLAY */
+        .login-wrapper { width: 100%; display: flex; justify-content: center; align-items: center; background-color: #f8fafc; min-height: 100vh; }
+        .login-container { width: 100%; max-width: 410px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+        .login-container h2 { text-align: center; margin-bottom: 24px; color: #0f172a; font-weight: 700; }
 
-        body {
-            background-color: #f1f5f9;
-            color: #1e293b;
-            min-height: 100vh;
-            display: flex;
-            width: 100%;
-        }
+        /* 2. MAIN WORKSPACE CONTAINER LAYOUT */
+        .app-layout { display: none; width: 100%; }
+        .sidebar { width: 260px; background-color: #0f172a; color: #94a3b8; display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; border-right: 1px solid #1e293b; }
+        .sidebar-brand { padding: 24px; font-size: 18px; font-weight: 700; color: white; background: #1e3a8a; border-bottom: 1px solid #1e293b; }
+        .sidebar-menu { list-style: none; padding: 16px 0; flex: 1; }
+        .sidebar-item { padding: 14px 24px; cursor: pointer; display: flex; align-items: center; font-weight: 500; font-size: 14px; transition: all 0.2s; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: #1e293b; color: white; border-left: 4px solid #3b82f6; }
+        .sidebar-footer { padding: 24px; border-top: 1px solid #1e293b; }
 
-        /* 1. LOGIN COMPONENT VIEWPORTS */
-        .login-wrapper {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f8fafc;
-            min-height: 100vh;
-        }
+        .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background-color: white; padding: 20px 32px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: relative; }
+        .header-actions { display: flex; align-items: center; gap: 20px; }
 
-        .login-container {
-            width: 100%;
-            max-width: 410px;
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
-        }
+        /* Notification Bell System */
+        .notification-container { position: relative; cursor: pointer; }
+        .bell-icon { font-size: 20px; position: relative; }
+        .bell-badge { position: absolute; top: -5px; right: -5px; background-color: #ef4444; color: white; font-size: 10px; font-weight: bold; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; }
+        .notification-dropdown { display: none; position: absolute; top: 60px; right: 32px; width: 320px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 1000; padding: 12px; }
+        .notification-dropdown h4 { font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; color: #0f172a; }
+        .notification-list { list-style: none; max-height: 200px; overflow-y: auto; font-size: 12px; color: #475569; }
+        .notification-item { padding: 8px; border-bottom: 1px solid #f8fafc; line-height: 1.4; }
 
-        .login-container h2 {
-            text-align: center;
-            margin-bottom: 24px;
-            color: #0f172a;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
+        .workspace-panel { padding: 32px; flex: 1; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        /* 2. CORE MASTER APPLICATION WINDOW STRUCTURE */
-        .app-layout {
-            display: none;
-            width: 100%;
-        }
+        .card { background-color: white; padding: 28px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 24px; max-width: 850px; }
+        .card-full { max-width: 100%; }
+        h2 { font-size: 18px; margin-bottom: 20px; color: #0f172a; font-weight: 700; }
+        p { font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 12px; }
+        
+        label { display: block; margin-top: 14px; font-weight: 600; font-size: 13px; color: #334155; }
+        input, select, textarea { width: 100%; padding: 10px 14px; margin-top: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
 
-        /* Unified Navigation Command Deck */
-        .sidebar {
-            width: 260px;
-            background-color: #0f172a;
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            border-right: 1px solid #1e293b;
-        }
-
-        .sidebar-brand {
-            padding: 24px;
-            font-size: 18px;
-            font-weight: 700;
-            color: white;
-            background: #1e3a8a;
-            border-bottom: 1px solid #1e293b;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            padding: 16px 0;
-            flex: 1;
-        }
-
-        .sidebar-item {
-            padding: 14px 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-
-        .sidebar-item:hover, .sidebar-item.active {
-            background-color: #1e293b;
-            color: white;
-            border-left: 4px solid #3b82f6;
-        }
-
-        .sidebar-footer {
-            padding: 24px;
-            border-top: 1px solid #1e293b;
-        }
-
-        /* Operational Canvas Space */
-        .main-content {
-            flex: 1;
-            margin-left: 260px;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        header {
-            background-color: white;
-            padding: 20px 32px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .user-badge {
-            font-weight: 600;
-            color: #0f172a;
-            font-size: 14px;
-        }
-
-        .logout-btn {
-            background-color: #f1f5f9;
-            color: #475569;
-            padding: 8px 16px;
-            font-size: 13px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .logout-btn:hover { background-color: #e2e8f0; }
-
-        .workspace-panel {
-            padding: 32px;
-            flex: 1;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Presentation Cards & Structural Layout Elements */
-        .card {
-            background-color: white;
-            padding: 28px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
-            margin-bottom: 24px;
-            max-width: 850px;
-        }
-
-        .card-full {
-            max-width: 100%;
-        }
-
-        h2 {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #0f172a;
-            font-weight: 700;
-        }
-
-        p {
-            font-size: 14px;
-            color: #475569;
-            line-height: 1.6;
-            margin-bottom: 12px;
-        }
-
-        /* Premium Input Fields */
-        label {
-            display: block;
-            margin-top: 14px;
-            font-weight: 600;
-            font-size: 13px;
-            color: #334155;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 10px 14px;
-            margin-top: 6px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 14px;
-            background-color: #fff;
-        }
-
-        /* Action Handlers & Control Triggers */
-        button {
-            width: 100%;
-            background-color: #10b981;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 15px;
-            margin-top: 12px;
-            text-align: center;
-            display: inline-block;
-        }
-
+        button { width: 100%; background-color: #10b981; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 15px; margin-top: 12px; }
         button:hover { background-color: #059669; }
         .btn-punch-out { background-color: #ef4444; }
         .btn-punch-out:hover { background-color: #dc2626; }
+        .btn-pdf { background-color: #2563eb; }
+        .btn-pdf:hover { background-color: #1d4ed8; }
         button:disabled { background-color: #cbd5e1 !important; color: #94a3b8; cursor: not-allowed; }
 
-        /* Embedded Execution Switches for Leave Management Grid Rows */
         .btn-action { width: auto; padding: 6px 12px; font-size: 12px; margin-right: 5px; margin-top: 0; display: inline-block; }
         .btn-approve { background-color: #10b981; }
-        .btn-approve:hover { background-color: #059669; }
         .btn-reject { background-color: #ef4444; }
-        .btn-reject:hover { background-color: #dc2626; }
 
-        /* Tabular Presentation Frameworks */
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-            margin-top: 12px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 14px 16px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 13px;
-        }
-
-        th {
-            background-color: #f8fafc;
-            color: #64748b;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-        }
-
-        /* Operational Visualization Tags */
-        .attendance-date-badge {
-            background-color: #eff6ff;
-            color: #1e40af;
-            font-weight: bold;
-            padding: 10px;
-            border-radius: 6px;
-            border-left: 4px solid #2563eb;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
+        .table-container { width: 100%; overflow-x: auto; margin-top: 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+        th { background-color: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px; }
 
         .badge { padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; display: inline-block; }
         .status-Pending { background-color: #fef3c7; color: #d97706; }
         .status-Approved { background-color: #d1fae5; color: #059669; }
         .status-Rejected { background-color: #fee2e2; color: #dc2626; }
+
+        /* AI CHATBOT SYSTEM */
+        .chat-widget { position: fixed; bottom: 25px; right: 25px; z-index: 2000; }
+        .chat-toggle { width: 56px; height: 56px; border-radius: 50%; background: #0f172a; color: white; border: 2px solid #3b82f6; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
+        .chat-box { display: none; width: 340px; height: 450px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex-direction: column; position: absolute; bottom: 75px; right: 0; overflow: hidden; }
+        .chat-header { background: #1e3a8a; color: white; padding: 14px; font-weight: 600; display: flex; justify-content: space-between; font-size: 14px; }
+        .chat-messages { flex: 1; padding: 14px; overflow-y: auto; background: #f8fafc; font-size: 13px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-msg { padding: 10px 14px; border-radius: 8px; max-width: 85%; line-height: 1.5; }
+        .chat-ai { background: white; border: 1px solid #e2e8f0; align-self: flex-start; color: #334155;}
+        .chat-user { background: #2563eb; color: white; align-self: flex-end; }
+        .chat-input { display: flex; border-top: 1px solid #e2e8f0; padding: 8px; background: white; }
+        .chat-input input { flex: 1; border: 1px solid #cbd5e1; padding: 8px 12px; margin: 0; border-radius: 4px; outline:none; }
+        .chat-input button { width: auto; margin: 0 0 0 8px; padding: 0 16px; font-size: 13px; background: #2563eb; border-radius: 4px;}
+
+        /* PDF LETTERHEAD TEMPLATE (Hidden until generated) */
+        #pdf-export-container { display: none; }
+        .letterhead { background: white; padding: 40px; width: 800px; color: #000; font-family: 'Times New Roman', Times, serif; }
+        .lh-header { text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 30px; }
+        .lh-title { font-size: 28px; font-weight: bold; color: #1e3a8a; text-transform: uppercase; }
+        .lh-subtitle { font-size: 14px; color: #475569; margin-top: 5px; }
+        .lh-meta { display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px; font-weight: bold; }
+        .lh-subject { font-size: 18px; font-weight: bold; text-decoration: underline; margin-bottom: 20px; }
+        .lh-body { font-size: 15px; line-height: 1.8; margin-bottom: 50px; white-space: pre-wrap; }
+        .lh-footer { margin-top: 50px; }
+        .lh-sign { font-weight: bold; font-size: 16px; margin-top: 40px; }
     </style>
 </head>
 <body>
 
-    <!-- 1. AUTHORIZATION GRID COMPONENT overlay -->
     <div id="login-wrapper" class="login-wrapper">
         <div class="login-container">
             <h2>HR Portal Authentication</h2>
@@ -294,22 +109,23 @@
                 <input type="password" id="password" placeholder="••••••••" required>
                 <button type="submit">Verify Credentials</button>
             </form>
-            <div style="margin-top: 18px; text-align: center; font-size: 11px; color: #94a3b8; background-color: #f8fafc; padding: 10px; border-radius: 6px; border: 1px dashed #e2e8f0;">
+            <div style="margin-top: 15px; text-align: center; font-size: 11px; color: #94a3b8;">
                 Owner: microbyte12 | CEO: archit@1999
             </div>
         </div>
     </div>
 
-    <!-- 2. CENTRAL RUNTIME LAYOUT -->
     <div id="app-layout" class="app-layout">
         <nav class="sidebar">
             <div class="sidebar-brand">Corporate HRMS</div>
             <ul class="sidebar-menu">
-                <!-- Dynamic Conditional Navigation Interfaces -->
                 <li class="sidebar-item" id="nav-attendance" style="display: none;" onclick="switchTab('tab-attendance')">⏱️ Daily Attendance</li>
-                <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave</li>
+                <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave Workspace</li>
+                
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
-                <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Management Logs</li>
+                <li class="sidebar-item" id="nav-admin-notice" style="display: none;" onclick="switchTab('tab-admin-notice')">📢 Broadcast Notice (PDF)</li>
+                <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Shift Logs</li>
+                <li class="sidebar-item" id="nav-admin-leaves" style="display: none;" onclick="switchTab('tab-admin-leaves')">📥 Review Leave Applications</li>
             </ul>
             <div class="sidebar-footer">
                 <button class="logout-btn" style="width: 100%;" onclick="handleLogout()">Exit Portal</button>
@@ -318,17 +134,28 @@
 
         <div class="main-content">
             <header>
-                <div class="user-badge" id="header-profile-badge">Validating Session Environment...</div>
-                <div style="font-size: 13px; font-weight: 600; color: #475569;" id="live-header-clock">🕒 00:00:00 AM</div>
+                <div class="user-badge" id="header-profile-badge">Session Active</div>
+                <div class="header-actions">
+                    <div class="notification-container" id="employee-notification-bell" style="display: none;" onclick="toggleNotifications()">
+                        <span class="bell-icon">🔔</span>
+                        <div class="bell-badge" id="bell-badge-count">0</div>
+                    </div>
+                    <div id="live-header-clock">🕒 00:00:00 AM</div>
+                </div>
+                
+                <div class="notification-dropdown" id="notification-dropdown-box">
+                    <h4>Internal Alerts Center</h4>
+                    <ul class="notification-list" id="notification-list-container">
+                        <li class="notification-item" style="text-align: center; color:#94a3b8;">No new filing alerts.</li>
+                    </ul>
+                </div>
             </header>
 
             <div class="workspace-panel">
-                <!-- WORKSPACE LAYER A: STAFF ATTENDANCE MODULE -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
-                        <div class="attendance-date-badge" id="attendance-live-date-badge">Clocking Date System...</div>
-                        <p>Current Verified Status: <strong id="punch-status-text" style="color: #64748b;">Ready to Log</strong></p>
+                        <p>Current Status: <strong id="punch-status-text" style="color: #64748b;">Ready to Log</strong></p>
                         <div style="display: flex; gap: 15px; margin-top: 15px;">
                             <button id="btn-punch-in" onclick="recordAttendance('Punch In')">Punch In</button>
                             <button id="btn-punch-out" class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
@@ -336,64 +163,120 @@
                     </div>
                 </div>
 
-                <!-- WORKSPACE LAYER B: STAFF LEAVE FORM AND HISTORY -->
                 <div id="tab-leave-apply" class="tab-content">
                     <div class="card">
                         <h2>File Leave Application</h2>
                         <form onsubmit="submitLeaveRequest(event)">
                             <label>Target Timeline Range</label>
                             <input type="text" id="form-leave-start" placeholder="e.g. June 15 to June 18" required>
-                            <label>Justification Context Description</label>
-                            <textarea id="form-leave-reason" rows="3" placeholder="State operational coverage reasons..." required></textarea>
+                            <label>Justification Reason Description</label>
+                            <textarea id="form-leave-reason" rows="3" required></textarea>
                             <button type="submit">Submit Leave Request</button>
                         </form>
                     </div>
-                </div>
-
-                <!-- WORKSPACE LAYER C: EXECUTIVE WELCOME DASHBOARD -->
-                <div id="tab-admin-dashboard" class="tab-content">
-                    <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
-                        <h2>Executive Management Workspace</h2>
-                        <p>Welcome back, Sir. Google Sheets distributed web macro arrays are fully synchronized with this viewport terminal panel loop.</p>
-                        <button style="background: #2563eb; width: auto; padding: 10px 24px; margin-top: 5px;" onclick="forceLocalSyncDraw()">🔄 Quick Force Sync Refresh</button>
+                    <div class="card card-full">
+                        <h2>Your Filed Applications Track History</h2>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Timeline Range</th><th>Submission Time</th><th>Status Tracking</th></tr></thead>
+                                <tbody id="emp-personal-leave-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <!-- WORKSPACE LAYER D: MASTER ADMINISTRATIVE ACTIONS OVERVIEW -->
+                <div id="tab-admin-dashboard" class="tab-content">
+                    <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
+                        <h2>Executive Management Workspace</h2>
+                        <p>Welcome back, Sir. Distributed web script arrays are active.</p>
+                        <button style="background: #2563eb; width: auto; padding: 10px 24px;" onclick="forceLocalSyncDraw()">🔄 Quick Force Sync Refresh</button>
+                    </div>
+                </div>
+
+                <div id="tab-admin-notice" class="tab-content">
+                    <div class="card card-full">
+                        <h2>📢 Broadcast Official Notice (PDF)</h2>
+                        <p>Draft an official company notice. Clicking "Generate PDF" will automatically format it onto a corporate letterhead and download the document securely.</p>
+                        
+                        <label>Notice Subject / Title</label>
+                        <input type="text" id="pdf-subject-input" placeholder="e.g. Mandatory Policy Update Regarding Weekend Shifts" required>
+                        
+                        <label>Official Notice Content</label>
+                        <textarea id="pdf-body-input" rows="6" placeholder="Type the body of the notice here..." required></textarea>
+                        
+                        <button class="btn-pdf" onclick="generateNoticePDF()">📄 Generate & Download Official PDF Notice</button>
+                    </div>
+                </div>
+
                 <div id="tab-admin-logs" class="tab-content">
                     <div class="card card-full">
-                        <h2>Master Employee Attendance & Leave Activity Logs</h2>
-                        <p style="color: #64748b; font-size: 13px; margin-bottom: 15px;">Use the inline approval actions panel column row buttons to issue operational choices instantly:</p>
+                        <h2>Master Employee Attendance Logs</h2>
                         <div class="table-container">
                             <table>
-                                <thead>
-                                    <tr>
-                                        <th>Target Identity Name</th>
-                                        <th>Log Category Type</th>
-                                        <th>Action Payload / Dates</th>
-                                        <th>Filing Timestamp Fields</th>
-                                        <th>Governance Track / Actions Panel</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr><th>Name</th><th>Card ID</th><th>Filing Action</th><th>Time Field</th><th>Date Field</th></tr></thead>
                                 <tbody id="log-table-body"></tbody>
                             </table>
                         </div>
-                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs()">Wipe Display Panel View</button>
+                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs('logs')">Clear Shift Displays</button>
+                    </div>
+                </div>
+
+                <div id="tab-admin-leaves" class="tab-content">
+                    <div class="card card-full">
+                        <h2>Review Pending Staff Leave Board</h2>
+                        <p style="color: #64748b; font-size: 13px; margin-bottom: 15px;">Evaluate staff leave rows and assign governance clearance determinations:</p>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Staff Name</th><th>Filing Category</th><th>Timeline Requested</th><th>Time Lodged</th><th>Clearance Action Controls</th></tr></thead>
+                                <tbody id="admin-leave-table-body"></tbody>
+                            </table>
+                        </div>
+                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs('leaves')">Clear Leave Displays</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <div id="pdf-export-container">
+        <div class="letterhead" id="print-letterhead">
+            <div class="lh-header">
+                <div class="lh-title">Microbyte Corporate Enterprise</div>
+                <div class="lh-subtitle">Official Executive Memorandum</div>
+            </div>
+            <div class="lh-meta">
+                <div>Date: <span id="pdf-out-date"></span></div>
+                <div>To: All Staff & Employees</div>
+            </div>
+            <div class="lh-subject">Subject: <span id="pdf-out-subject"></span></div>
+            <div class="lh-body" id="pdf-out-body"></div>
+            <div class="lh-footer">
+                <div>Authorized & Issued By:</div>
+                <div class="lh-sign" id="pdf-out-signer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-widget">
+        <button class="chat-toggle" onclick="toggleChatWindow()">🤖</button>
+        <div class="chat-box" id="hrms-ai-box">
+            <div class="chat-header"><span>HR Support System AI</span><span style="cursor:pointer" onclick="toggleChatWindow()">✖</span></div>
+            <div class="chat-messages" id="chat-messages-scroll">
+                <div class="chat-msg chat-ai">Greetings! I am your AI assistant. Need help with passwords, PDF notices, or leave approvals? Ask me here.</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chat-query-input" placeholder="Type a message..." onkeypress="handleChatKey(event)">
+                <button onclick="sendChatQuery()">Send</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Bound Web App Micro-Database Route Link Allocation Parameters
         const GOOGLE_DATABASE_URL = "https://script.google.com/macros/s/AKfycbxfYf68GQzMCFXeTHjE4c8A6wwDBKU2_DQCDDvr_WR9q58axF3UmwtFKTCahtEnBEtv/exec";
         let currentUser = null;
 
         window.addEventListener('DOMContentLoaded', () => {
-            setInterval(() => { 
-                document.getElementById('live-header-clock').innerText = "🕒 " + new Date().toLocaleTimeString(); 
-            }, 1000);
+            setInterval(() => { document.getElementById('live-header-clock').innerText = "🕒 " + new Date().toLocaleTimeString(); }, 1000);
         });
 
         function switchTab(tabId) {
@@ -401,16 +284,21 @@
             document.getElementById(tabId).classList.add('active');
         }
 
+        function toggleNotifications() {
+            const el = document.getElementById('notification-dropdown-box');
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+            document.getElementById('bell-badge-count').style.display = 'none';
+        }
+
         function handleLogin(e) {
             e.preventDefault();
             const user = document.getElementById('username').value.trim().toLowerCase();
             const pass = document.getElementById('password').value.trim();
 
-            // Strict Anti-Casing Identity Filtering Array Blocks
             if ((user === "ceo" || user === "archit" || user === "archit ghanshyala") && pass === "archit@1999") {
-                currentUser = { name: "Archit Ghanshyala", role: "admin", id: "CEO" };
+                currentUser = { name: "Archit Ghanshyala", role: "admin", id: "CEO", title: "Chief Executive Officer" };
             } else if ((user === "owner" || user === "amit" || user === "amit sharma") && pass === "microbyte12") {
-                currentUser = { name: "Mr. Amit Sharma", role: "admin", id: "CHAIRMAN" };
+                currentUser = { name: "Mr. Amit Sharma", role: "admin", id: "CHAIRMAN", title: "Corporate Chairman" };
             } else if (user === "1001" && pass === "microbyte123") {
                 currentUser = { name: "Parthik Pokhriyal", role: "employee", id: "1001" };
             } else {
@@ -424,173 +312,243 @@
 
             if (currentUser.role === 'admin') {
                 document.getElementById('nav-admin-dashboard').style.display = 'block';
+                document.getElementById('nav-admin-notice').style.display = 'block';
                 document.getElementById('nav-admin-logs').style.display = 'block';
+                document.getElementById('nav-admin-leaves').style.display = 'block';
+                document.getElementById('employee-notification-bell').style.display = 'none';
                 switchTab('tab-admin-dashboard');
             } else {
                 document.getElementById('nav-attendance').style.display = 'block';
                 document.getElementById('nav-leave-apply').style.display = 'block';
+                document.getElementById('employee-notification-bell').style.display = 'block';
                 switchTab('tab-attendance');
                 checkPunches();
+                evalNotificationsEngine();
             }
             forceLocalSyncDraw();
         }
 
-        // Direct Local Check Mechanism - Bypasses Network Delay Issues Completely
+        // --- PDF GENERATION FUNCTION ---
+        function generateNoticePDF() {
+            const subject = document.getElementById('pdf-subject-input').value.trim();
+            const body = document.getElementById('pdf-body-input').value.trim();
+
+            if(!subject || !body) {
+                alert("Please fill in both the Subject and the Notice Content before generating the PDF.");
+                return;
+            }
+
+            // Map inputs to the hidden HTML template
+            document.getElementById('pdf-out-date').innerText = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('pdf-out-subject').innerText = subject;
+            document.getElementById('pdf-out-body').innerText = body;
+            document.getElementById('pdf-out-signer').innerText = `${currentUser.name}\n${currentUser.title}`;
+
+            // Reveal template temporarily for html2pdf
+            const element = document.getElementById('print-letterhead');
+            document.getElementById('pdf-export-container').style.display = 'block';
+
+            // Configure PDF settings
+            const opt = {
+                margin:       0,
+                filename:     `Official_Notice_${new Date().getTime()}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Generate and save PDF
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Hide template again after generation
+                document.getElementById('pdf-export-container').style.display = 'none';
+                document.getElementById('pdf-subject-input').value = "";
+                document.getElementById('pdf-body-input').value = "";
+                alert("Official PDF Notice downloaded successfully!");
+            });
+        }
+
         function checkPunches() {
             const today = new Date().toLocaleDateString();
             const hasIn = localStorage.getItem(`in_${currentUser.id}_${today}`);
             const hasOut = localStorage.getItem(`out_${currentUser.id}_${today}`);
-            const dateBadge = document.getElementById('attendance-live-date-badge');
-            
-            if(dateBadge) {
-                dateBadge.innerText = `📅 ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
-            }
             
             const txt = document.getElementById('punch-status-text');
             if(hasOut) {
-                txt.innerText = "Shift Completed (Punched Out Today)"; 
-                txt.style.color = "#ef4444";
-                document.getElementById('btn-punch-in').disabled = true; 
-                document.getElementById('btn-punch-out').disabled = true;
+                txt.innerText = "Shift Completed (Punched Out Today)"; txt.style.color = "#ef4444";
+                document.getElementById('btn-punch-in').disabled = true; document.getElementById('btn-punch-out').disabled = true;
             } else if(hasIn) {
-                txt.innerText = "Active Shift Session (Punched In)"; 
-                txt.style.color = "#10b981";
-                document.getElementById('btn-punch-in').disabled = true; 
-                document.getElementById('btn-punch-out').disabled = false;
+                txt.innerText = "Active Shift Session (Punched In)"; txt.style.color = "#10b981";
+                document.getElementById('btn-punch-in').disabled = true; document.getElementById('btn-punch-out').disabled = false;
             } else {
-                txt.innerText = "Not Punched In Yet"; 
-                txt.style.color = "#64748b";
-                document.getElementById('btn-punch-in').disabled = false; 
-                document.getElementById('btn-punch-out').disabled = true;
+                txt.innerText = "Not Punched In Yet"; txt.style.color = "#64748b";
+                document.getElementById('btn-punch-in').disabled = false; document.getElementById('btn-punch-out').disabled = true;
             }
         }
 
         function recordAttendance(action) {
             const today = new Date().toLocaleDateString();
             const time = new Date().toLocaleTimeString();
-            const rowData = [currentUser.name, currentUser.id, action, time, today, "System Log"];
+            const rowData = [currentUser.name, currentUser.id, action, time, today];
 
             if(action === 'Punch In') localStorage.setItem(`in_${currentUser.id}_${today}`, "true");
             if(action === 'Punch Out') localStorage.setItem(`out_${currentUser.id}_${today}`, "true");
             
             checkPunches();
 
-            let logs = JSON.parse(localStorage.getItem('master_shared_logs') || "[]");
+            let logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
             logs.unshift(rowData);
-            localStorage.setItem('master_shared_logs', JSON.stringify(logs));
+            localStorage.setItem('master_attendance_logs_arr', JSON.stringify(logs));
 
-            // Quietly pipe to sheet indices in secondary background frames without breaking UI thread processing loops
-            fetch(GOOGLE_DATABASE_URL, { 
-                method: "POST", 
-                mode: "no-cors", 
-                body: JSON.stringify({ targetTable: "logs", actionType: "insert", rowData: rowData })
-            });
-
-            alert(`${action} successfully saved to cloud parameters!`);
+            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "logs", actionType: "insert", rowData: rowData })});
+            alert(`${action} Captured and synced to sheet columns!`);
             forceLocalSyncDraw();
         }
 
         function submitLeaveRequest(e) {
             e.preventDefault();
             const uniqueId = Date.now();
-            const targetDateRange = document.getElementById('form-leave-start').value;
-            const rowData = [currentUser.name, "Leave Request", targetDateRange, new Date().toLocaleTimeString(), "Pending", uniqueId];
+            const timeline = document.getElementById('form-leave-start').value;
+            const timeField = new Date().toLocaleTimeString();
+            const rowData = [currentUser.name, "Leave Request", timeline, timeField, "Pending", uniqueId];
             
-            let logs = JSON.parse(localStorage.getItem('master_shared_logs') || "[]");
-            logs.unshift(rowData);
-            localStorage.setItem('master_shared_logs', JSON.stringify(logs));
+            let leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
+            leaves.unshift(rowData);
+            localStorage.setItem('master_leaves_logs_arr', JSON.stringify(leaves));
 
-            fetch(GOOGLE_DATABASE_URL, { 
-                method: "POST", 
-                mode: "no-cors", 
-                body: JSON.stringify({ targetTable: "leaves", actionType: "insert", rowData: rowData })
-            });
-
-            alert("Leave Request Submitted successfully to cloud array logs!");
+            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "leaves", actionType: "insert", rowData: rowData })});
+            alert("Leave application sent straight to executive review dashboard!");
             e.target.reset();
             forceLocalSyncDraw();
         }
 
-        // Live Executive Action Processing Framework Handler
         window.processLeaveDecision = function(uniqueId, finalStatus) {
-            let logs = JSON.parse(localStorage.getItem('master_shared_logs') || "[]");
+            let leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
             
-            for(let i=0; i < logs.length; i++) {
-                if(logs[i][1] === "Leave Request" && logs[i][5] == uniqueId) {
-                    logs[i][4] = finalStatus;
+            for(let i=0; i < leaves.length; i++) {
+                if(leaves[i][5] == uniqueId) {
+                    leaves[i][4] = finalStatus;
+                    localStorage.setItem(`notify_status_${uniqueId}`, finalStatus);
                     break;
                 }
             }
-            localStorage.setItem('master_shared_logs', JSON.stringify(logs));
-            alert(`Application tracking status successfully updated: ${finalStatus}`);
+            localStorage.setItem('master_leaves_logs_arr', JSON.stringify(leaves));
+            alert(`Application classification set: ${finalStatus}`);
             forceLocalSyncDraw();
 
             fetch(GOOGLE_DATABASE_URL, {
                 method: "POST",
                 mode: "no-cors",
-                body: JSON.stringify({ targetTable: "leaves", actionType: "updateLeave", id: uniqueId, status: finalStatus, remarks: "Updated via Admin Executive Action" })
+                body: JSON.stringify({ targetTable: "leaves", actionType: "updateLeave", id: uniqueId, status: finalStatus, remarks: "Decision registered by executive workspace." })
             });
         }
 
-        function forceLocalSyncDraw() {
-            const tbody = document.getElementById('log-table-body');
-            if(tbody) {
-                const logs = JSON.parse(localStorage.getItem('master_shared_logs') || "[]");
-                if(logs.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 20px;">No operational record loops active inside temporary layout streams. Click force sync refresh above.</td></tr>`;
-                } else {
-                    tbody.innerHTML = logs.map(row => {
-                        let trackingControlColumn = "";
-                        
-                        if(row[1] === "Leave Request") {
-                            if(row[4] === "Pending") {
-                                trackingControlColumn = `
-                                    <span class="badge status-Pending" style="margin-right: 10px;">Pending</span>
-                                    <button class="btn-action btn-approve" onclick="processLeaveDecision(${row[5]}, 'Approved')">🟢 Approve</button>
-                                    <button class="btn-action btn-reject" onclick="processLeaveDecision(${row[5]}, 'Rejected')">❌ Reject</button>
-                                `;
-                            } else {
-                                trackingControlColumn = `<span class="badge status-${row[4]}">${row[4]}</span>`;
-                            }
-                        } else {
-                            trackingControlColumn = `<span style="color:#2563eb; font-weight:700;">${row[4] || "Verified Logs"}</span>`;
-                        }
+        function evalNotificationsEngine() {
+            const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
+            const alertContainer = document.getElementById('notification-list-container');
+            const badge = document.getElementById('bell-badge-count');
+            
+            let alertItemsHTML = "";
+            let newNotificationsCount = 0;
 
-                        return `<tr>
-                            <td><strong>${row[0]}</strong></td>
-                            <td><span style="color:${row[1]==='Leave Request'?'#1e3a8a':'#475569'}; font-weight:bold;">${row[1]}</span></td>
-                            <td>${row[2]}</td>
-                            <td>${row[3]}</td>
-                            <td>${trackingControlColumn}</td>
-                        </tr>`;
-                    }).join('');
+            leaves.forEach(row => {
+                const storedNoticeState = localStorage.getItem(`notify_status_${row[5]}`);
+                if (storedNoticeState && storedNoticeState !== "Pending") {
+                    newNotificationsCount++;
+                    alertItemsHTML += `<li class="notification-item" style="border-left:3px solid ${storedNoticeState==='Approved'?'#10b981':'#ef4444'}; padding-left:5px;">
+                        Your leave filing for <strong>${row[2]}</strong> was marked <span class="badge status-${storedNoticeState}">${storedNoticeState}</span>.
+                    </li>`;
                 }
+            });
+
+            if(newNotificationsCount > 0) {
+                badge.innerText = newNotificationsCount;
+                badge.style.display = "flex";
+                alertContainer.innerHTML = alertItemsHTML;
             }
-
-            // Silent distributed lookup fetch back thread sequence
-            fetch(GOOGLE_DATABASE_URL).then(r => r.json()).then(data => {
-                if(data && data.logs && data.logs.length > 0) {
-                    localStorage.setItem('master_shared_logs', JSON.stringify(data.logs));
-                    if(tbody) {
-                        tbody.innerHTML = data.logs.map(row => {
-                            let actionUi = row[1] === "Leave Request" ? `<span class="badge status-${row[4]}">${row[4]}</span>` : `<span style="color:#2563eb; font-weight:700;">${row[4] || "Verified"}</span>`;
-                            return `<tr><td><strong>${row[0]}</strong></td><td><b>${row[1]}</b></td><td>${row[2]}</td><td>${row[3]}</td><td>${actionUi}</td></tr>`;
-                        }).join('');
-                    }
-                }
-            }).catch(e => console.log('Background sync loop operational'));
         }
 
-        function clearLocalLogs() {
-            if(confirm("Are you sure you want to clean up the local management viewport screen tracking entries?")) {
-                localStorage.removeItem('master_shared_logs');
+        function forceLocalSyncDraw() {
+            const logBody = document.getElementById('log-table-body');
+            if(logBody) {
+                const logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
+                logBody.innerHTML = logs.length === 0 ? `<tr><td colspan="5" style="text-align:center;">No entries active.</td></tr>` : 
+                    logs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
+            }
+
+            const adminLeaveBody = document.getElementById('admin-leave-table-body');
+            if(adminLeaveBody) {
+                const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
+                adminLeaveBody.innerHTML = leaves.length === 0 ? `<tr><td colspan="5" style="text-align:center;">No requests active.</td></tr>` :
+                    leaves.map(row => {
+                        let actionsUi = row[4] === "Pending" ? `
+                            <button class="btn-action btn-approve" onclick="processLeaveDecision(${row[5]}, 'Approved')">🟢 Approve</button>
+                            <button class="btn-action btn-reject" onclick="processLeaveDecision(${row[5]}, 'Rejected')">❌ Reject</button>` : 
+                            `<span class="badge status-${row[4]}">${row[4]}</span>`;
+                        return `<tr><td><strong>${row[0]}</strong></td><td><b>${row[1]}</b></td><td>${row[2]}</td><td>${row[3]}</td><td>${actionsUi}</td></tr>`;
+                    }).join('');
+            }
+
+            if(currentUser && currentUser.role === 'employee') {
+                const empPersonalBody = document.getElementById('emp-personal-leave-tbody');
+                if(empPersonalBody) {
+                    const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
+                    empPersonalBody.innerHTML = leaves.map(row => {
+                        const cloudCheckedState = localStorage.getItem(`notify_status_${row[5]}`) || row[4];
+                        return `<tr><td>${row[2]}</td><td>${row[3]}</td><td><span class="badge status-${cloudCheckedState}">${cloudCheckedState}</span></td></tr>`;
+                    }).join('');
+                }
+                evalNotificationsEngine();
+            }
+        }
+
+        function clearLocalLogs(target) {
+            if(confirm("Confirm resetting local viewport caches?")) {
+                if(target === 'logs') localStorage.removeItem('master_attendance_logs_arr');
+                if(target === 'leaves') localStorage.removeItem('master_leaves_logs_arr');
                 forceLocalSyncDraw();
             }
         }
 
-        function handleLogout() { 
-            location.reload(); 
+        /* DIGITAL AI ENGINE CHATBOT CORE WORKFLOWS */
+        function toggleChatWindow() { 
+            const el = document.getElementById('hrms-ai-box'); 
+            el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; 
         }
+        
+        function handleChatKey(e) { 
+            if(e.key === 'Enter') sendChatQuery(); 
+        }
+        
+        function sendChatQuery() {
+            const input = document.getElementById('chat-query-input');
+            const txt = input.value.trim(); 
+            if(!txt) return;
+
+            const scroller = document.getElementById('chat-messages-scroll');
+            scroller.innerHTML += `<div class="chat-msg chat-user">${txt}</div>`;
+            input.value = ""; 
+            scroller.scrollTop = scroller.scrollHeight;
+
+            setTimeout(() => {
+                let response = "I am your HR AI Assistant. I can help you with passwords, creating PDF notices, and managing leave approvals.";
+                const val = txt.toLowerCase();
+                
+                if(val.includes('password') || val.includes('login')) {
+                    response = "System Credentials: <br>• Employee ID 1001: microbyte123 <br>• CEO: archit@1999 <br>• Owner: microbyte12";
+                }
+                if(val.includes('leave') || val.includes('approve')) {
+                    response = "Employee leave requests will appear in the 'Review Leave Applications' tab for the CEO and Owner to approve or reject. Employees will get a bell notification instantly.";
+                }
+                if(val.includes('pdf') || val.includes('notice')) {
+                    response = "To generate an official PDF notice, go to the '📢 Broadcast Notice (PDF)' tab. Enter the subject and body, and click Generate. The system will format it onto a corporate letterhead automatically!";
+                }
+                
+                scroller.innerHTML += `<div class="chat-msg chat-ai">${response}</div>`;
+                scroller.scrollTop = scroller.scrollHeight;
+            }, 400);
+        }
+
+        function handleLogout() { location.reload(); }
     </script>
 </body>
 </html>
