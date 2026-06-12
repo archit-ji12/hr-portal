@@ -56,6 +56,8 @@
         .btn-punch-out:hover { background-color: #dc2626; }
         .btn-pdf { background-color: #2563eb; }
         .btn-pdf:hover { background-color: #1d4ed8; }
+        .btn-restart { background-color: #eab308; color: #000; display: none; }
+        .btn-restart:hover { background-color: #ca8a04; }
         button:disabled { background-color: #cbd5e1 !important; color: #94a3b8; cursor: not-allowed; }
 
         .btn-action { width: auto; padding: 6px 12px; font-size: 12px; margin-right: 5px; margin-top: 0; display: inline-block; }
@@ -85,7 +87,7 @@
         .chat-input input { flex: 1; border: 1px solid #cbd5e1; padding: 8px 12px; margin: 0; border-radius: 4px; outline:none; }
         .chat-input button { width: auto; margin: 0 0 0 8px; padding: 0 16px; font-size: 13px; background: #2563eb; border-radius: 4px;}
 
-        /* PDF LETTERHEAD TEMPLATE (Hidden until generated) */
+        /* PDF LETTERHEAD TEMPLATE */
         #pdf-export-container { display: none; }
         .letterhead { background: white; padding: 40px; width: 800px; color: #000; font-family: 'Times New Roman', Times, serif; }
         .lh-header { text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 30px; }
@@ -122,15 +124,16 @@
         <nav class="sidebar">
             <div class="sidebar-brand">Corporate HRMS</div>
             <ul class="sidebar-menu">
-                <!-- Employee Tabs -->
+                <!-- Shared Tabs -->
                 <li class="sidebar-item" id="nav-attendance" style="display: none;" onclick="switchTab('tab-attendance')">⏱️ Daily Attendance</li>
-                <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave Workspace</li>
+                <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave</li>
                 
-                <!-- Admin Tabs -->
+                <!-- Admin Only Tabs -->
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
                 <li class="sidebar-item" id="nav-admin-notice" style="display: none;" onclick="switchTab('tab-admin-notice')">📢 Broadcast Notice (PDF)</li>
                 <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Shift Logs</li>
-                <li class="sidebar-item" id="nav-admin-leaves" style="display: none;" onclick="switchTab('tab-admin-leaves')">📥 Review Leave Applications</li>
+                <li class="sidebar-item" id="nav-admin-leaves" style="display: none;" onclick="switchTab('tab-admin-leaves')">📥 Review Leave Apps</li>
+                <li class="sidebar-item" id="nav-admin-fines" style="display: none;" onclick="switchTab('tab-admin-fines')">⚠️ Penalty Fines Ledger</li>
             </ul>
             <div class="sidebar-footer">
                 <button class="logout-btn" style="width: 100%;" onclick="handleLogout()">Exit Portal</button>
@@ -157,15 +160,18 @@
             </header>
 
             <div class="workspace-panel">
-                <!-- TAB 1: ATTENDANCE -->
+                <!-- TAB 1: ATTENDANCE (Now available to Admins too!) -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
                         <p>Current Status: <strong id="punch-status-text" style="color: #64748b;">Ready to Log</strong></p>
+                        <p style="font-size: 12px; color: #ef4444; margin-top: 8px;">*Warning: Punching in after 1:00 PM or punching out before 8:00 PM incurs a ₹284 fine.</p>
                         <div style="display: flex; gap: 15px; margin-top: 15px;">
                             <button id="btn-punch-in" onclick="recordAttendance('Punch In')">Punch In</button>
                             <button id="btn-punch-out" class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
                         </div>
+                        <!-- Admin Only Restart Punch Button -->
+                        <button id="btn-admin-restart" class="btn-restart" onclick="restartPunchLock()">🔄 Restart / Unlock My Punch (Admin Test Tool)</button>
                     </div>
                 </div>
 
@@ -196,23 +202,20 @@
                 <div id="tab-admin-dashboard" class="tab-content">
                     <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
                         <h2>Executive Management Workspace</h2>
-                        <p>Welcome back, Sir. Distributed web script arrays are active. Click the button below to actively download all global employee data from the Google Sheet.</p>
+                        <p>Welcome back, Sir. Click the button below to fetch live logs and punches straight from Google Sheets across all devices.</p>
                         <button id="sync-btn" style="background: #2563eb; width: auto; padding: 10px 24px;" onclick="syncDatabaseGlobal()">🔄 Quick Force Sync Refresh</button>
                     </div>
                 </div>
 
-                <!-- TAB 4: NEW PDF NOTICE GENERATOR FOR ADMINS -->
+                <!-- TAB 4: PDF NOTICE GENERATOR -->
                 <div id="tab-admin-notice" class="tab-content">
                     <div class="card card-full">
                         <h2>📢 Broadcast Official Notice (PDF)</h2>
                         <p>Draft an official company notice. Clicking "Generate PDF" will automatically format it onto a corporate letterhead and download the document securely.</p>
-                        
                         <label>Notice Subject / Title</label>
                         <input type="text" id="pdf-subject-input" placeholder="e.g. Mandatory Policy Update Regarding Weekend Shifts" required>
-                        
                         <label>Official Notice Content</label>
                         <textarea id="pdf-body-input" rows="6" placeholder="Type the body of the notice here..." required></textarea>
-                        
                         <button class="btn-pdf" onclick="generateNoticePDF()">📄 Generate & Download Official PDF Notice</button>
                     </div>
                 </div>
@@ -227,7 +230,6 @@
                                 <tbody id="log-table-body"></tbody>
                             </table>
                         </div>
-                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs('logs')">Clear Local View</button>
                     </div>
                 </div>
 
@@ -235,16 +237,30 @@
                 <div id="tab-admin-leaves" class="tab-content">
                     <div class="card card-full">
                         <h2>Review Pending Staff Leave Board</h2>
-                        <p style="color: #64748b; font-size: 13px; margin-bottom: 15px;">Evaluate staff leave rows and assign governance clearance determinations:</p>
                         <div class="table-container">
                             <table>
                                 <thead><tr><th>Staff Name</th><th>Filing Category</th><th>Timeline Requested</th><th>Time Lodged</th><th>Clearance Action Controls</th></tr></thead>
                                 <tbody id="admin-leave-table-body"></tbody>
                             </table>
                         </div>
-                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs('leaves')">Clear Local View</button>
                     </div>
                 </div>
+
+                <!-- TAB 7: ADMIN PENALTY FINES LEDGER -->
+                <div id="tab-admin-fines" class="tab-content">
+                    <div class="card card-full" style="border-left: 5px solid #ef4444;">
+                        <h2>⚠️ Master Penalty Fine Ledger</h2>
+                        <p>Automated deductions for Late Arrivals (>1:00 PM) and Early Departures (<8:00 PM).</p>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Name</th><th>Card ID</th><th>Infraction Rule Broken</th><th>Fine Deducted</th><th>Time Lodged</th><th>Date</th></tr></thead>
+                                <tbody id="admin-fines-table-body"></tbody>
+                            </table>
+                        </div>
+                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs('all')">Clear Local Device Cache</button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -275,7 +291,7 @@
         <div class="chat-box" id="hrms-ai-box">
             <div class="chat-header"><span>HR Support System AI</span><span style="cursor:pointer" onclick="toggleChatWindow()">✖</span></div>
             <div class="chat-messages" id="chat-messages-scroll">
-                <div class="chat-msg chat-ai">Greetings! I am your AI assistant. Need help with passwords, PDF notices, or leave approvals? Ask me here.</div>
+                <div class="chat-msg chat-ai">Greetings! I am your AI assistant. Need help with passwords, PDF notices, or penalty fines? Ask me here.</div>
             </div>
             <div class="chat-input">
                 <input type="text" id="chat-query-input" placeholder="Type a message..." onkeypress="handleChatKey(event)">
@@ -323,26 +339,33 @@
             document.getElementById('app-layout').style.display = 'flex';
             document.getElementById('header-profile-badge').innerText = currentUser.name;
 
+            // Give Admins access to Attendance too!
             if (currentUser.role === 'admin') {
+                document.getElementById('nav-attendance').style.display = 'block';
+                document.getElementById('nav-leave-apply').style.display = 'block';
                 document.getElementById('nav-admin-dashboard').style.display = 'block';
                 document.getElementById('nav-admin-notice').style.display = 'block';
                 document.getElementById('nav-admin-logs').style.display = 'block';
                 document.getElementById('nav-admin-leaves').style.display = 'block';
+                document.getElementById('nav-admin-fines').style.display = 'block';
                 document.getElementById('employee-notification-bell').style.display = 'none';
+                
+                // Show the Admin "Restart Punch" test tool
+                document.getElementById('btn-admin-restart').style.display = 'inline-block';
+                
                 switchTab('tab-admin-dashboard');
-                syncDatabaseGlobal(); // Automatically pull global data for CEO/Owner upon login
+                checkPunches();
+                syncDatabaseGlobal(); 
             } else {
                 document.getElementById('nav-attendance').style.display = 'block';
                 document.getElementById('nav-leave-apply').style.display = 'block';
                 document.getElementById('employee-notification-bell').style.display = 'block';
                 switchTab('tab-attendance');
                 checkPunches();
-                syncDatabaseGlobal(); // Pull status updates for Employee upon login
+                syncDatabaseGlobal(); 
             }
         }
 
-        // --- THE FIX: GLOBAL CLOUD SYNCHRONIZATION FUNCTION ---
-        // This function actively pulls cross-device punches and leave updates down from Google Sheets!
         async function syncDatabaseGlobal() {
             try {
                 const syncBtn = document.getElementById('sync-btn');
@@ -357,16 +380,30 @@
                 if(data.leaves && data.leaves.length > 0) {
                     localStorage.setItem('master_leaves_logs_arr', JSON.stringify(data.leaves));
                 }
+                
+                // Fetch Fines if available
+                if(data.fines && data.fines.length > 0) {
+                    localStorage.setItem('master_fines_arr', JSON.stringify(data.fines));
+                }
 
                 forceLocalSyncDraw();
                 if(currentUser && currentUser.role === 'employee') evalNotificationsEngine();
                 
                 if(syncBtn) syncBtn.innerText = "🔄 Quick Force Sync Refresh";
             } catch (err) {
-                console.log("Cloud sync delayed or offline. Using local cache.");
+                console.log("Cloud sync offline. Using local cache.");
                 if(document.getElementById('sync-btn')) document.getElementById('sync-btn').innerText = "🔄 Quick Force Sync Refresh";
                 forceLocalSyncDraw();
             }
+        }
+
+        // --- RESTART / UNLOCK PUNCH FUNCTION (FOR ADMIN TESTING) ---
+        function restartPunchLock() {
+            const today = new Date().toLocaleDateString();
+            localStorage.removeItem(`in_${currentUser.id}_${today}`);
+            localStorage.removeItem(`out_${currentUser.id}_${today}`);
+            checkPunches();
+            alert("Punch lock reset successfully! You can now test the Punch In button again.");
         }
 
         // --- PDF GENERATION FUNCTION ---
@@ -374,10 +411,7 @@
             const subject = document.getElementById('pdf-subject-input').value.trim();
             const body = document.getElementById('pdf-body-input').value.trim();
 
-            if(!subject || !body) {
-                alert("Please fill in both the Subject and the Notice Content before generating the PDF.");
-                return;
-            }
+            if(!subject || !body) { alert("Please fill in both the Subject and the Notice Content."); return; }
 
             document.getElementById('pdf-out-date').innerText = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             document.getElementById('pdf-out-subject').innerText = subject;
@@ -388,17 +422,14 @@
             document.getElementById('pdf-export-container').style.display = 'block';
 
             const opt = {
-                margin:       0,
-                filename:     `Official_Notice_${new Date().getTime()}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                margin: 0, filename: `Official_Notice_${new Date().getTime()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
                 document.getElementById('pdf-export-container').style.display = 'none';
-                document.getElementById('pdf-subject-input').value = "";
-                document.getElementById('pdf-body-input').value = "";
+                document.getElementById('pdf-subject-input').value = ""; document.getElementById('pdf-body-input').value = "";
                 alert("Official PDF Notice downloaded successfully!");
             });
         }
@@ -421,10 +452,48 @@
             }
         }
 
+        // --- THE DEDUCTION ENGINE ---
         function recordAttendance(action) {
-            const today = new Date().toLocaleDateString();
-            const time = new Date().toLocaleTimeString();
-            const rowData = [currentUser.name, currentUser.id, action, time, today];
+            const now = new Date();
+            const today = now.toLocaleDateString();
+            const time = now.toLocaleTimeString();
+            const currentHour = now.getHours(); 
+            
+            let fineAmount = null;
+            let fineReason = null;
+
+            // Late Arrival (After 1:00 PM / 13:00)
+            if (action === 'Punch In' && currentHour >= 13) {
+                fineAmount = "₹284";
+                fineReason = "Late Arrival (>1:00 PM)";
+            } 
+            // Early Departure (Before 8:00 PM / 20:00)
+            else if (action === 'Punch Out' && currentHour < 20) {
+                fineAmount = "₹284";
+                fineReason = "Early Departure (<8:00 PM)";
+            }
+
+            let displayAction = action;
+
+            if (fineAmount) {
+                displayAction = `${action} ⚠️ Fine: ${fineAmount}`; 
+                
+                const fineRow = [currentUser.name, currentUser.id, fineReason, fineAmount, time, today];
+                let finesArr = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
+                finesArr.unshift(fineRow);
+                localStorage.setItem('master_fines_arr', JSON.stringify(finesArr));
+
+                fetch(GOOGLE_DATABASE_URL, { 
+                    method: "POST", mode: "no-cors", 
+                    body: JSON.stringify({ targetTable: "fines", actionType: "insert", rowData: fineRow })
+                });
+
+                alert(`⚠️ Warning: ${fineReason}. An automatic deduction of ${fineAmount} has been processed.`);
+            } else {
+                alert(`${action} Captured Successfully!`);
+            }
+
+            const rowData = [currentUser.name, currentUser.id, displayAction, time, today];
 
             if(action === 'Punch In') localStorage.setItem(`in_${currentUser.id}_${today}`, "true");
             if(action === 'Punch Out') localStorage.setItem(`out_${currentUser.id}_${today}`, "true");
@@ -436,7 +505,6 @@
             localStorage.setItem('master_attendance_logs_arr', JSON.stringify(logs));
 
             fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "logs", actionType: "insert", rowData: rowData })});
-            alert(`${action} Captured and synced to sheet columns!`);
             forceLocalSyncDraw();
         }
 
@@ -459,7 +527,6 @@
 
         window.processLeaveDecision = function(uniqueId, finalStatus) {
             let leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
-            
             for(let i=0; i < leaves.length; i++) {
                 if(leaves[i][5] == uniqueId) {
                     leaves[i][4] = finalStatus;
@@ -472,8 +539,7 @@
             forceLocalSyncDraw();
 
             fetch(GOOGLE_DATABASE_URL, {
-                method: "POST",
-                mode: "no-cors",
+                method: "POST", mode: "no-cors",
                 body: JSON.stringify({ targetTable: "leaves", actionType: "updateLeave", id: uniqueId, status: finalStatus, remarks: "Decision registered by executive workspace." })
             });
         }
@@ -510,7 +576,7 @@
             if(logBody) {
                 const logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
                 logBody.innerHTML = logs.length === 0 ? `<tr><td colspan="5" style="text-align:center;">No entries active.</td></tr>` : 
-                    logs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
+                    logs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td><span style="color:${row[2] && row[2].includes && row[2].includes('⚠️') ? '#ef4444' : '#1e293b'}; font-weight:600;">${row[2]}</span></td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
             }
 
             const adminLeaveBody = document.getElementById('admin-leave-table-body');
@@ -526,7 +592,14 @@
                     }).join('');
             }
 
-            if(currentUser && currentUser.role === 'employee') {
+            const finesBody = document.getElementById('admin-fines-table-body');
+            if(finesBody) {
+                const fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
+                finesBody.innerHTML = fines.length === 0 ? `<tr><td colspan="6" style="text-align:center;">No fines have been deducted today.</td></tr>` :
+                    fines.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td style="color:#ef4444; font-weight:bold;">${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td></tr>`).join('');
+            }
+
+            if(currentUser && (currentUser.role === 'employee' || currentUser.role === 'admin')) {
                 const empPersonalBody = document.getElementById('emp-personal-leave-tbody');
                 if(empPersonalBody) {
                     const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
@@ -540,48 +613,32 @@
 
         function clearLocalLogs(target) {
             if(confirm("Confirm resetting local viewport caches? Note: Data in Google Sheets remains safe.")) {
-                if(target === 'logs') localStorage.removeItem('master_attendance_logs_arr');
-                if(target === 'leaves') localStorage.removeItem('master_leaves_logs_arr');
+                localStorage.removeItem('master_attendance_logs_arr');
+                localStorage.removeItem('master_leaves_logs_arr');
+                localStorage.removeItem('master_fines_arr');
                 forceLocalSyncDraw();
             }
         }
 
-        /* DIGITAL AI ENGINE CHATBOT CORE WORKFLOWS */
-        function toggleChatWindow() { 
-            const el = document.getElementById('hrms-ai-box'); 
-            el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; 
-        }
-        
-        function handleChatKey(e) { 
-            if(e.key === 'Enter') sendChatQuery(); 
-        }
-        
+        /* DIGITAL AI ENGINE CHATBOT */
+        function toggleChatWindow() { const el = document.getElementById('hrms-ai-box'); el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; }
+        function handleChatKey(e) { if(e.key === 'Enter') sendChatQuery(); }
         function sendChatQuery() {
             const input = document.getElementById('chat-query-input');
-            const txt = input.value.trim(); 
-            if(!txt) return;
+            const txt = input.value.trim(); if(!txt) return;
 
             const scroller = document.getElementById('chat-messages-scroll');
             scroller.innerHTML += `<div class="chat-msg chat-user">${txt}</div>`;
-            input.value = ""; 
-            scroller.scrollTop = scroller.scrollHeight;
+            input.value = ""; scroller.scrollTop = scroller.scrollHeight;
 
             setTimeout(() => {
-                let response = "I am your HR AI Assistant. I can help you with passwords, creating PDF notices, and managing leave approvals.";
+                let response = "I am your HR AI Assistant. I can help you with passwords, creating PDF notices, and managing penalty fines.";
                 const val = txt.toLowerCase();
                 
-                if(val.includes('password') || val.includes('login')) {
-                    response = "System Credentials: <br>• Employee ID 1001: microbyte123 <br>• CEO: archit@1999 <br>• Owner: microbyte12";
-                }
-                if(val.includes('leave') || val.includes('approve')) {
-                    response = "Employee leave requests will appear in the 'Review Leave Applications' tab for the CEO and Owner to approve or reject. Employees will get a bell notification instantly.";
-                }
-                if(val.includes('pdf') || val.includes('notice')) {
-                    response = "To generate an official PDF notice, go to the '📢 Broadcast Notice (PDF)' tab. Enter the subject and body, and click Generate. The system will format it onto a corporate letterhead automatically!";
-                }
-                if(val.includes('sync') || val.includes('punch')) {
-                    response = "If punches aren't showing across devices, simply click the blue 'Quick Force Sync Refresh' button on the Admin Dashboard to fetch live data directly from Google Sheets.";
-                }
+                if(val.includes('password') || val.includes('login')) { response = "System Credentials: <br>• ID 1001: microbyte123 <br>• CEO: archit@1999 <br>• Owner: microbyte12"; }
+                if(val.includes('fine') || val.includes('deduct')) { response = "The system automatically deducts ₹284 if an employee checks in after 1:00 PM or checks out before 8:00 PM. Fines appear in the 'Penalty Fines Ledger' and have a red warning tag in the main logs."; }
+                if(val.includes('pdf') || val.includes('notice')) { response = "Go to the '📢 Broadcast Notice (PDF)' tab. Enter the subject and body, and click Generate. The system will format it onto a corporate letterhead automatically!"; }
+                if(val.includes('sync') || val.includes('punch') || val.includes('restart')) { response = "If punches aren't showing across devices, simply click the blue 'Quick Force Sync Refresh' button on the Admin Dashboard. Admins can also reset their punch button to test it multiple times using the yellow Restart button on the Attendance tab."; }
                 
                 scroller.innerHTML += `<div class="chat-msg chat-ai">${response}</div>`;
                 scroller.scrollTop = scroller.scrollHeight;
