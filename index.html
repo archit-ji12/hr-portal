@@ -228,6 +228,7 @@
         button:hover { background-color: #059669; }
         .btn-punch-out { background-color: #ef4444; }
         .btn-punch-out:hover { background-color: #dc2626; }
+        button:disabled { background-color: #cbd5e1 !important; color: #94a3b8; cursor: not-allowed; }
 
         /* Tables */
         .table-container {
@@ -293,11 +294,8 @@
         <nav class="sidebar">
             <div class="sidebar-brand">Corporate HRMS</div>
             <ul class="sidebar-menu">
-                <!-- Employee Only Tabs -->
                 <li class="sidebar-item" id="nav-attendance" style="display: none;" onclick="switchTab('tab-attendance')">⏱️ Daily Attendance</li>
                 <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave</li>
-                
-                <!-- Admin Only Tabs -->
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
                 <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Punch Logs</li>
                 <li class="sidebar-item" id="nav-admin-leaves" style="display: none;" onclick="switchTab('tab-admin-leaves')">📥 Employee Leave Requests</li>
@@ -319,15 +317,15 @@
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
                         <div class="attendance-date-badge" id="attendance-live-date-badge">Processing...</div>
-                        <p>Current Verified Status: <strong id="punch-status-text">Not Punched In</strong></p>
+                        <p>Current Verified Status: <strong id="punch-status-text" style="color: #2563eb;">Checking live sheet status...</strong></p>
                         <div style="display: flex; gap: 15px; margin-top: 15px;">
-                            <button onclick="recordAttendance('Punch In')">Punch In</button>
-                            <button class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
+                            <button id="btn-punch-in" onclick="recordAttendance('Punch In')">Punch In</button>
+                            <button id="btn-punch-out" class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB B: EMPLOYEE LEAVE APPLICATION (Hidden from CEO) -->
+                <!-- TAB B: EMPLOYEE LEAVE APPLICATION -->
                 <div id="tab-leave-apply" class="tab-content">
                     <div class="card">
                         <h2>File Leave Application</h2>
@@ -368,7 +366,7 @@
                     </div>
                 </div>
 
-                <!-- TAB E: ADMIN REVIEW LEAVE FILINGS (Where Parthik's leaves show up!) -->
+                <!-- TAB E: ADMIN REVIEW LEAVE FILINGS -->
                 <div id="tab-admin-leaves" class="tab-content">
                     <div class="card card-full">
                         <h2>Pending Staff Leave Applications Board</h2>
@@ -402,6 +400,10 @@
         function runClock() {
             const now = new Date();
             document.getElementById('live-header-clock').innerText = `🕒 ${now.toLocaleTimeString()}`;
+            const dateBadge = document.getElementById('attendance-live-date-badge');
+            if(dateBadge) {
+                dateBadge.innerText = `📅 ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+            }
         }
 
         function switchTab(tabId) {
@@ -430,22 +432,14 @@
             document.getElementById('app-layout').style.display = 'flex';
             document.getElementById('header-profile-badge').innerText = currentUser.name;
             
-            // SECURITY FILTER: Completely separates views by login role type
             if (currentUser.role === 'admin') {
                 document.getElementById('nav-admin-dashboard').style.display = 'block';
                 document.getElementById('nav-admin-logs').style.display = 'block';
                 document.getElementById('nav-admin-leaves').style.display = 'block';
-                
-                document.getElementById('nav-attendance').style.display = 'none';
-                document.getElementById('nav-leave-apply').style.display = 'none';
                 switchTab('tab-admin-dashboard');
             } else {
                 document.getElementById('nav-attendance').style.display = 'block';
                 document.getElementById('nav-leave-apply').style.display = 'block';
-                
-                document.getElementById('nav-admin-dashboard').style.display = 'none';
-                document.getElementById('nav-admin-logs').style.display = 'none';
-                document.getElementById('nav-admin-leaves').style.display = 'none';
                 switchTab('tab-attendance');
             }
             syncDatabase();
@@ -457,20 +451,53 @@
                 let data = await response.json();
                 globalLogs = data.logs || [];
                 globalLeaves = data.leaves || [];
+                
                 renderTables();
+                checkPunchRestrictions();
             } catch (err) {
-                console.log("Sync failed or pending.");
+                console.log("Sync tracking offline.");
+            }
+        }
+
+        function checkPunchRestrictions() {
+            if (currentUser && currentUser.role === 'employee') {
+                const todayStr = new Date().toLocaleDateString();
+                
+                // Scan the logs pulled from Google Sheet to look for today's punches for this employee
+                const userPunchesToday = globalLogs.filter(row => row[1] == currentUser.id && row[4] == todayStr);
+                
+                const hasPunchedIn = userPunchesToday.some(row => row[2] === "Punch In");
+                const hasPunchedOut = userPunchesToday.some(row => row[2] === "Punch Out");
+                
+                const statusText = document.getElementById('punch-status-text');
+                const punchInBtn = document.getElementById('btn-punch-in');
+                const punchOutBtn = document.getElementById('btn-punch-out');
+
+                if (hasPunchedOut) {
+                    statusText.innerText = "Shift Completed (Punched Out)";
+                    statusText.style.color = "#ef4444";
+                    punchInBtn.disabled = true;
+                    punchOutBtn.disabled = true;
+                } else if (hasPunchedIn) {
+                    statusText.innerText = "Active Shift (Punched In)";
+                    statusText.style.color = "#10b981";
+                    punchInBtn.disabled = true; // Block duplicate check-ins!
+                    punchOutBtn.disabled = false;
+                } else {
+                    statusText.innerText = "Not Punched In Yet";
+                    statusText.style.color = "#64748b";
+                    punchInBtn.disabled = false;
+                    punchOutBtn.disabled = true; // Can't punch out before punching in
+                }
             }
         }
 
         function renderTables() {
-            // Write rows to Admin Punch Logs panel
             const logBody = document.getElementById('log-table-body');
             if(logBody) {
                 logBody.innerHTML = globalLogs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
             }
             
-            // Write rows to Admin Leaves Panel
             const adminLeaveBody = document.getElementById('admin-leave-table-body');
             if(adminLeaveBody) {
                 adminLeaveBody.innerHTML = globalLeaves.map(row => `<tr><td><strong>${row[1]}</strong></td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td><span class="badge badge-pending">${row[6]}</span></td><td>${row[7]}</td></tr>`).join('');
@@ -478,9 +505,22 @@
         }
 
         async function recordAttendance(action) {
+            // Extra safety lock check before calling the fetch network payload
+            const todayStr = new Date().toLocaleDateString();
+            const matches = globalLogs.filter(row => row[1] == currentUser.id && row[4] == todayStr && row[2] === action);
+            if (matches.length > 0) {
+                alert(`Action Restricted: You have already logged a ${action} for today.`);
+                return;
+            }
+
             const timestamp = new Date().toLocaleTimeString();
-            const rowData = [currentUser.name, currentUser.id, action, timestamp, new Date().toLocaleDateString()];
+            const rowData = [currentUser.name, currentUser.id, action, timestamp, todayStr];
             
+            // Instantly gray out the button to prevent double-clicking while it uploads
+            document.getElementById('btn-punch-in').disabled = true;
+            document.getElementById('btn-punch-out').disabled = true;
+            document.getElementById('punch-status-text').innerText = "Uploading to Google Sheet Cloud...";
+
             await fetch(GOOGLE_DATABASE_URL, {
                 method: "POST",
                 body: JSON.stringify({ targetTable: "logs", actionType: "insert", rowData: rowData })
@@ -504,7 +544,7 @@
                 body: JSON.stringify({ targetTable: "leaves", actionType: "insert", rowData: rowData })
             });
             
-            alert("Leave Request Submitted successfully to Cloud Spreadsheet!");
+            alert("Leave Request Submitted successfully!");
             e.target.reset();
             syncDatabase();
         }
