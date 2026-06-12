@@ -56,8 +56,6 @@
         .btn-punch-out:hover { background-color: #dc2626; }
         .btn-pdf { background-color: #2563eb; }
         .btn-pdf:hover { background-color: #1d4ed8; }
-        .btn-restart { background-color: #eab308; color: #000; display: none; }
-        .btn-restart:hover { background-color: #ca8a04; }
         button:disabled { background-color: #cbd5e1 !important; color: #94a3b8; cursor: not-allowed; }
 
         .btn-action { width: auto; padding: 6px 12px; font-size: 12px; margin-right: 5px; margin-top: 0; display: inline-block; }
@@ -102,20 +100,17 @@
 </head>
 <body>
 
-    <!-- 1. AUTH WINDOW -->
+    <!-- 1. AUTH WINDOW (SECURE - NO PASSWORDS SHOWN) -->
     <div id="login-wrapper" class="login-wrapper">
         <div class="login-container">
             <h2>HR Portal Authentication</h2>
             <form id="hrms-login-form" onsubmit="handleLogin(event)">
                 <label for="username">User Login Identity</label>
-                <input type="text" id="username" placeholder="owner, ceo, or 1001" required>
+                <input type="text" id="username" placeholder="Enter Login ID" required>
                 <label for="password">Password Access Key</label>
                 <input type="password" id="password" placeholder="••••••••" required>
                 <button type="submit">Verify Credentials</button>
             </form>
-            <div style="margin-top: 15px; text-align: center; font-size: 11px; color: #94a3b8;">
-                Owner: microbyte12 | CEO: archit@1999
-            </div>
         </div>
     </div>
 
@@ -124,11 +119,11 @@
         <nav class="sidebar">
             <div class="sidebar-brand">Corporate HRMS</div>
             <ul class="sidebar-menu">
-                <!-- Shared Tabs -->
+                <!-- Employee Tabs (Hidden from Admins) -->
                 <li class="sidebar-item" id="nav-attendance" style="display: none;" onclick="switchTab('tab-attendance')">⏱️ Daily Attendance</li>
-                <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave</li>
+                <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave Workspace</li>
                 
-                <!-- Admin Only Tabs -->
+                <!-- Admin Tabs (Hidden from Employees) -->
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
                 <li class="sidebar-item" id="nav-admin-notice" style="display: none;" onclick="switchTab('tab-admin-notice')">📢 Broadcast Notice (PDF)</li>
                 <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Shift Logs</li>
@@ -160,7 +155,7 @@
             </header>
 
             <div class="workspace-panel">
-                <!-- TAB 1: ATTENDANCE (Now available to Admins too!) -->
+                <!-- TAB 1: ATTENDANCE (EMPLOYEES ONLY) -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
@@ -170,12 +165,10 @@
                             <button id="btn-punch-in" onclick="recordAttendance('Punch In')">Punch In</button>
                             <button id="btn-punch-out" class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
                         </div>
-                        <!-- Admin Only Restart Punch Button -->
-                        <button id="btn-admin-restart" class="btn-restart" onclick="restartPunchLock()">🔄 Restart / Unlock My Punch (Admin Test Tool)</button>
                     </div>
                 </div>
 
-                <!-- TAB 2: EMPLOYEE LEAVES -->
+                <!-- TAB 2: EMPLOYEE LEAVES (EMPLOYEES ONLY) -->
                 <div id="tab-leave-apply" class="tab-content">
                     <div class="card">
                         <h2>File Leave Application</h2>
@@ -198,7 +191,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: ADMIN DASHBOARD -->
+                <!-- TAB 3: ADMIN DASHBOARD (ADMINS ONLY) -->
                 <div id="tab-admin-dashboard" class="tab-content">
                     <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
                         <h2>Executive Management Workspace</h2>
@@ -207,7 +200,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 4: PDF NOTICE GENERATOR -->
+                <!-- TAB 4: PDF NOTICE GENERATOR (ADMINS ONLY) -->
                 <div id="tab-admin-notice" class="tab-content">
                     <div class="card card-full">
                         <h2>📢 Broadcast Official Notice (PDF)</h2>
@@ -220,10 +213,11 @@
                     </div>
                 </div>
 
-                <!-- TAB 5: ADMIN SHIFT LOGS -->
+                <!-- TAB 5: ADMIN SHIFT LOGS (ADMINS ONLY) -->
                 <div id="tab-admin-logs" class="tab-content">
                     <div class="card card-full">
                         <h2>Master Employee Attendance Logs</h2>
+                        <p style="color: #64748b; font-size: 13px; margin-bottom: 15px;">Monitor employee swipe times below. Penalty warnings will be tagged automatically.</p>
                         <div class="table-container">
                             <table>
                                 <thead><tr><th>Name</th><th>Card ID</th><th>Filing Action</th><th>Time Field</th><th>Date Field</th></tr></thead>
@@ -233,10 +227,11 @@
                     </div>
                 </div>
 
-                <!-- TAB 6: ADMIN LEAVE APPROVALS -->
+                <!-- TAB 6: ADMIN LEAVE APPROVALS (ADMINS ONLY) -->
                 <div id="tab-admin-leaves" class="tab-content">
                     <div class="card card-full">
                         <h2>Review Pending Staff Leave Board</h2>
+                        <p style="color: #64748b; font-size: 13px; margin-bottom: 15px;">Evaluate staff leave requests and accept or reject them instantly:</p>
                         <div class="table-container">
                             <table>
                                 <thead><tr><th>Staff Name</th><th>Filing Category</th><th>Timeline Requested</th><th>Time Lodged</th><th>Clearance Action Controls</th></tr></thead>
@@ -246,7 +241,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 7: ADMIN PENALTY FINES LEDGER -->
+                <!-- TAB 7: ADMIN PENALTY FINES LEDGER (ADMINS ONLY) -->
                 <div id="tab-admin-fines" class="tab-content">
                     <div class="card card-full" style="border-left: 5px solid #ef4444;">
                         <h2>⚠️ Master Penalty Fine Ledger</h2>
@@ -291,7 +286,7 @@
         <div class="chat-box" id="hrms-ai-box">
             <div class="chat-header"><span>HR Support System AI</span><span style="cursor:pointer" onclick="toggleChatWindow()">✖</span></div>
             <div class="chat-messages" id="chat-messages-scroll">
-                <div class="chat-msg chat-ai">Greetings! I am your AI assistant. Need help with passwords, PDF notices, or penalty fines? Ask me here.</div>
+                <div class="chat-msg chat-ai">Greetings! I am your AI assistant. Need help navigating the system, generating PDF notices, or checking penalty rules? Ask me here.</div>
             </div>
             <div class="chat-input">
                 <input type="text" id="chat-query-input" placeholder="Type a message..." onkeypress="handleChatKey(event)">
@@ -339,27 +334,35 @@
             document.getElementById('app-layout').style.display = 'flex';
             document.getElementById('header-profile-badge').innerText = currentUser.name;
 
-            // Give Admins access to Attendance too!
+            // PERFECTED STRICT ROLE SEPARATION
             if (currentUser.role === 'admin') {
-                document.getElementById('nav-attendance').style.display = 'block';
-                document.getElementById('nav-leave-apply').style.display = 'block';
+                // Hide Employee Features Completely
+                document.getElementById('nav-attendance').style.display = 'none';
+                document.getElementById('nav-leave-apply').style.display = 'none';
+                document.getElementById('employee-notification-bell').style.display = 'none';
+
+                // Show Admin Features
                 document.getElementById('nav-admin-dashboard').style.display = 'block';
                 document.getElementById('nav-admin-notice').style.display = 'block';
                 document.getElementById('nav-admin-logs').style.display = 'block';
                 document.getElementById('nav-admin-leaves').style.display = 'block';
                 document.getElementById('nav-admin-fines').style.display = 'block';
-                document.getElementById('employee-notification-bell').style.display = 'none';
-                
-                // Show the Admin "Restart Punch" test tool
-                document.getElementById('btn-admin-restart').style.display = 'inline-block';
                 
                 switchTab('tab-admin-dashboard');
-                checkPunches();
                 syncDatabaseGlobal(); 
             } else {
+                // Hide Admin Features Completely
+                document.getElementById('nav-admin-dashboard').style.display = 'none';
+                document.getElementById('nav-admin-notice').style.display = 'none';
+                document.getElementById('nav-admin-logs').style.display = 'none';
+                document.getElementById('nav-admin-leaves').style.display = 'none';
+                document.getElementById('nav-admin-fines').style.display = 'none';
+
+                // Show Employee Features
                 document.getElementById('nav-attendance').style.display = 'block';
                 document.getElementById('nav-leave-apply').style.display = 'block';
                 document.getElementById('employee-notification-bell').style.display = 'block';
+                
                 switchTab('tab-attendance');
                 checkPunches();
                 syncDatabaseGlobal(); 
@@ -380,8 +383,6 @@
                 if(data.leaves && data.leaves.length > 0) {
                     localStorage.setItem('master_leaves_logs_arr', JSON.stringify(data.leaves));
                 }
-                
-                // Fetch Fines if available
                 if(data.fines && data.fines.length > 0) {
                     localStorage.setItem('master_fines_arr', JSON.stringify(data.fines));
                 }
@@ -397,16 +398,6 @@
             }
         }
 
-        // --- RESTART / UNLOCK PUNCH FUNCTION (FOR ADMIN TESTING) ---
-        function restartPunchLock() {
-            const today = new Date().toLocaleDateString();
-            localStorage.removeItem(`in_${currentUser.id}_${today}`);
-            localStorage.removeItem(`out_${currentUser.id}_${today}`);
-            checkPunches();
-            alert("Punch lock reset successfully! You can now test the Punch In button again.");
-        }
-
-        // --- PDF GENERATION FUNCTION ---
         function generateNoticePDF() {
             const subject = document.getElementById('pdf-subject-input').value.trim();
             const body = document.getElementById('pdf-body-input').value.trim();
@@ -452,7 +443,6 @@
             }
         }
 
-        // --- THE DEDUCTION ENGINE ---
         function recordAttendance(action) {
             const now = new Date();
             const today = now.toLocaleDateString();
@@ -462,15 +452,10 @@
             let fineAmount = null;
             let fineReason = null;
 
-            // Late Arrival (After 1:00 PM / 13:00)
             if (action === 'Punch In' && currentHour >= 13) {
-                fineAmount = "₹284";
-                fineReason = "Late Arrival (>1:00 PM)";
-            } 
-            // Early Departure (Before 8:00 PM / 20:00)
-            else if (action === 'Punch Out' && currentHour < 20) {
-                fineAmount = "₹284";
-                fineReason = "Early Departure (<8:00 PM)";
+                fineAmount = "₹284"; fineReason = "Late Arrival (>1:00 PM)";
+            } else if (action === 'Punch Out' && currentHour < 20) {
+                fineAmount = "₹284"; fineReason = "Early Departure (<8:00 PM)";
             }
 
             let displayAction = action;
@@ -599,7 +584,7 @@
                     fines.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td style="color:#ef4444; font-weight:bold;">${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td></tr>`).join('');
             }
 
-            if(currentUser && (currentUser.role === 'employee' || currentUser.role === 'admin')) {
+            if(currentUser && currentUser.role === 'employee') {
                 const empPersonalBody = document.getElementById('emp-personal-leave-tbody');
                 if(empPersonalBody) {
                     const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
@@ -620,7 +605,7 @@
             }
         }
 
-        /* DIGITAL AI ENGINE CHATBOT */
+        /* DIGITAL AI ENGINE CHATBOT (SECURE VERSION) */
         function toggleChatWindow() { const el = document.getElementById('hrms-ai-box'); el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; }
         function handleChatKey(e) { if(e.key === 'Enter') sendChatQuery(); }
         function sendChatQuery() {
@@ -632,13 +617,21 @@
             input.value = ""; scroller.scrollTop = scroller.scrollHeight;
 
             setTimeout(() => {
-                let response = "I am your HR AI Assistant. I can help you with passwords, creating PDF notices, and managing penalty fines.";
+                let response = "I am your HR AI Assistant. I can help you navigate the system, explain penalty rules, or assist with PDFs and leave approvals.";
                 const val = txt.toLowerCase();
                 
-                if(val.includes('password') || val.includes('login')) { response = "System Credentials: <br>• ID 1001: microbyte123 <br>• CEO: archit@1999 <br>• Owner: microbyte12"; }
-                if(val.includes('fine') || val.includes('deduct')) { response = "The system automatically deducts ₹284 if an employee checks in after 1:00 PM or checks out before 8:00 PM. Fines appear in the 'Penalty Fines Ledger' and have a red warning tag in the main logs."; }
-                if(val.includes('pdf') || val.includes('notice')) { response = "Go to the '📢 Broadcast Notice (PDF)' tab. Enter the subject and body, and click Generate. The system will format it onto a corporate letterhead automatically!"; }
-                if(val.includes('sync') || val.includes('punch') || val.includes('restart')) { response = "If punches aren't showing across devices, simply click the blue 'Quick Force Sync Refresh' button on the Admin Dashboard. Admins can also reset their punch button to test it multiple times using the yellow Restart button on the Attendance tab."; }
+                if(val.includes('password') || val.includes('login') || val.includes('credential')) { 
+                    response = "For strict corporate security, I cannot share login credentials in this chat. If you have lost your access keys, please contact the IT Administration team directly."; 
+                }
+                else if(val.includes('fine') || val.includes('deduct')) { 
+                    response = "The system automatically deducts ₹284 if an employee checks in after 1:00 PM or checks out before 8:00 PM. Fines appear in the 'Penalty Fines Ledger' and have a red warning tag in the main logs."; 
+                }
+                else if(val.includes('pdf') || val.includes('notice')) { 
+                    response = "If you have executive access, go to the '📢 Broadcast Notice (PDF)' tab. Enter the subject and body, and click Generate. The system will format it onto a corporate letterhead automatically!"; 
+                }
+                else if(val.includes('sync') || val.includes('punch') || val.includes('update')) { 
+                    response = "Data synchronizes with Google Sheets automatically. If logs aren't showing across devices, click the blue 'Quick Force Sync Refresh' button on the Executive Dashboard to fetch live data."; 
+                }
                 
                 scroller.innerHTML += `<div class="chat-msg chat-ai">${response}</div>`;
                 scroller.scrollTop = scroller.scrollHeight;
