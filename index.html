@@ -209,14 +209,6 @@
             border-color: #2563eb;
         }
 
-        .admin-remark-input {
-            padding: 6px 12px;
-            font-size: 12px;
-            width: 180px;
-            display: inline-block;
-            margin-right: 8px;
-        }
-
         button, .btn-link {
             width: 100%;
             background-color: #10b981;
@@ -236,8 +228,6 @@
         button:hover { background-color: #059669; }
         .btn-punch-out { background-color: #ef4444; }
         .btn-punch-out:hover { background-color: #dc2626; }
-        .btn-excel { background-color: #16a34a; width: auto; padding: 12px 24px; }
-        .btn-excel:hover { background-color: #15803d; }
 
         /* Tables */
         .table-container {
@@ -270,17 +260,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Badges */
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 11px;
-        }
-        .badge-pending { background-color: #fef3c7; color: #d97706; }
-        .badge-approved { background-color: #d1fae5; color: #059669; }
-        .badge-rejected { background-color: #fee2e2; color: #dc2626; }
-
         .attendance-date-badge {
             background-color: #eff6ff;
             color: #1e40af;
@@ -290,18 +269,6 @@
             border-left: 4px solid #2563eb;
             margin-bottom: 15px;
             font-size: 14px;
-        }
-
-        .holiday-badge {
-            background-color: #fee2e2;
-            color: #b91c1c;
-            font-weight: bold;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 5px solid #ef4444;
-            margin-bottom: 15px;
-            font-size: 15px;
-            text-align: center;
         }
     </style>
 </head>
@@ -326,12 +293,14 @@
         <nav class="sidebar">
             <div class="sidebar-brand">Corporate HRMS</div>
             <ul class="sidebar-menu">
+                <!-- Employee Only Tabs -->
                 <li class="sidebar-item" id="nav-attendance" style="display: none;" onclick="switchTab('tab-attendance')">⏱️ Daily Attendance</li>
+                <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave</li>
+                
+                <!-- Admin Only Tabs -->
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
-                <li class="sidebar-item" id="nav-leave" onclick="switchTab('tab-leave')">📅 Leave Application</li>
-                <li class="sidebar-item" id="nav-salary" onclick="switchTab('tab-salary')">💰 Salary Ledger File</li>
                 <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Punch Logs</li>
-                <li class="sidebar-item" id="nav-admin-leaves" style="display: none;" onclick="switchTab('tab-admin-leaves')">📥 Review Leave Filings</li>
+                <li class="sidebar-item" id="nav-admin-leaves" style="display: none;" onclick="switchTab('tab-admin-leaves')">📥 Employee Leave Requests</li>
             </ul>
             <div class="sidebar-footer">
                 <button class="logout-btn" style="width: 100%;" onclick="handleLogout()">Exit Portal</button>
@@ -345,33 +314,22 @@
             </header>
 
             <div class="workspace-panel">
-                <!-- TAB A: EMPLOYEE PUNCH -->
+                <!-- TAB A: EMPLOYEE ATTENDANCE -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
                         <div class="attendance-date-badge" id="attendance-live-date-badge">Processing...</div>
-                        <div id="weekend-holiday-banner" class="holiday-badge" style="display: none;">🎉 OFFICIAL WEEKEND HOLIDAY</div>
-                        <div id="attendance-interactive-actions">
-                            <p>Current Verified Status: <strong id="punch-status-text">Not Punched In</strong></p>
-                            <div style="display: flex; gap: 15px; margin-top: 15px;">
-                                <button onclick="recordAttendance('Punch In')">Punch In</button>
-                                <button class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
-                            </div>
+                        <p>Current Verified Status: <strong id="punch-status-text">Not Punched In</strong></p>
+                        <div style="display: flex; gap: 15px; margin-top: 15px;">
+                            <button onclick="recordAttendance('Punch In')">Punch In</button>
+                            <button class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB B: ADMIN DASHBOARD -->
-                <div id="tab-admin-dashboard" class="tab-content">
-                    <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
-                        <h2>Executive Management Console</h2>
-                        <p>Welcome back, Sir. Google Sheets database synchronization is active.</p>
-                    </div>
-                </div>
-
-                <!-- TAB C: LEAVE APPLICATION -->
-                <div id="tab-leave" class="tab-content">
-                    <div class="card" id="employee-apply-leave-card">
+                <!-- TAB B: EMPLOYEE LEAVE APPLICATION (Hidden from CEO) -->
+                <div id="tab-leave-apply" class="tab-content">
+                    <div class="card">
                         <h2>File Leave Application</h2>
                         <form onsubmit="submitLeaveRequest(event)">
                             <label>Classification Type</label>
@@ -387,18 +345,17 @@
                             <button type="submit">Submit Filing</button>
                         </form>
                     </div>
-                    <div class="card card-full">
-                        <h2>Leave History Records</h2>
-                        <div class="table-container">
-                            <table>
-                                <thead><tr><th>Staff</th><th>Type</th><th>Duration</th><th>Days</th><th>Status</th><th>Remarks</th></tr></thead>
-                                <tbody id="leave-table-body"></tbody>
-                            </table>
-                        </div>
+                </div>
+
+                <!-- TAB C: ADMIN CONSOLE WELCOME -->
+                <div id="tab-admin-dashboard" class="tab-content">
+                    <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
+                        <h2>Executive Management Console</h2>
+                        <p>Welcome back, Sir. Google Sheets cloud database grid loops are fully active and tracking live devices.</p>
                     </div>
                 </div>
 
-                <!-- TAB D: MASTER LOGS -->
+                <!-- TAB D: ADMIN MASTER LOGS -->
                 <div id="tab-admin-logs" class="tab-content">
                     <div class="card card-full">
                         <h2>Master Employee Attendance Activity Logs</h2>
@@ -410,12 +367,26 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- TAB E: ADMIN REVIEW LEAVE FILINGS (Where Parthik's leaves show up!) -->
+                <div id="tab-admin-leaves" class="tab-content">
+                    <div class="card card-full">
+                        <h2>Pending Staff Leave Applications Board</h2>
+                        <p>Review filed leave requests coming from employees below:</p>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Staff Name</th><th>Card ID</th><th>Type</th><th>Filing Duration</th><th>Status</th><th>Remarks</th></tr></thead>
+                                <tbody id="admin-leave-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
     <script>
-        // Line 214: Embedded Your Unique Google Web App Database URL Link
         const GOOGLE_DATABASE_URL = "https://script.google.com/macros/s/AKfycbxfYf68GQzMCFXeTHjE4c8A6wwDBKU2_DQCDDvr_WR9q58axF3UmwtFKTCahtEnBEtv/exec";
 
         let currentUser = null;
@@ -435,12 +406,15 @@
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            
+            const targetContent = document.getElementById(tabId);
+            if(targetContent) targetContent.classList.add('active');
         }
 
         function handleLogin(e) {
             e.preventDefault();
-            const user = document.getElementById('username').value.trim();
+            const user = document.getElementById('username').value.trim().toLowerCase();
             const pass = document.getElementById('password').value.trim();
 
             if (user === "ceo" && pass === "archit@1999") {
@@ -456,12 +430,22 @@
             document.getElementById('app-layout').style.display = 'flex';
             document.getElementById('header-profile-badge').innerText = currentUser.name;
             
+            // SECURITY FILTER: Completely separates views by login role type
             if (currentUser.role === 'admin') {
                 document.getElementById('nav-admin-dashboard').style.display = 'block';
                 document.getElementById('nav-admin-logs').style.display = 'block';
+                document.getElementById('nav-admin-leaves').style.display = 'block';
+                
+                document.getElementById('nav-attendance').style.display = 'none';
+                document.getElementById('nav-leave-apply').style.display = 'none';
                 switchTab('tab-admin-dashboard');
             } else {
                 document.getElementById('nav-attendance').style.display = 'block';
+                document.getElementById('nav-leave-apply').style.display = 'block';
+                
+                document.getElementById('nav-admin-dashboard').style.display = 'none';
+                document.getElementById('nav-admin-logs').style.display = 'none';
+                document.getElementById('nav-admin-leaves').style.display = 'none';
                 switchTab('tab-attendance');
             }
             syncDatabase();
@@ -475,20 +459,21 @@
                 globalLeaves = data.leaves || [];
                 renderTables();
             } catch (err) {
-                console.log("Sync Error: Google Web App connection pending deployment authorization.");
+                console.log("Sync failed or pending.");
             }
         }
 
         function renderTables() {
-            // Render Logs onto Dashboard Table
+            // Write rows to Admin Punch Logs panel
             const logBody = document.getElementById('log-table-body');
             if(logBody) {
                 logBody.innerHTML = globalLogs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
             }
-            // Render Leaves onto Dashboard Table
-            const leaveBody = document.getElementById('leave-table-body');
-            if(leaveBody) {
-                leaveBody.innerHTML = globalLeaves.map(row => `<tr><td>${row[1]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${row[6]}</td><td>${row[7]}</td></tr>`).join('');
+            
+            // Write rows to Admin Leaves Panel
+            const adminLeaveBody = document.getElementById('admin-leave-table-body');
+            if(adminLeaveBody) {
+                adminLeaveBody.innerHTML = globalLeaves.map(row => `<tr><td><strong>${row[1]}</strong></td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td><span class="badge badge-pending">${row[6]}</span></td><td>${row[7]}</td></tr>`).join('');
             }
         }
 
@@ -501,7 +486,7 @@
                 body: JSON.stringify({ targetTable: "logs", actionType: "insert", rowData: rowData })
             });
             
-            alert(`${action} successfully registered to your cloud Google Sheet spreadsheet!`);
+            alert(`${action} Recorded Successfully!`);
             syncDatabase();
         }
 
@@ -519,7 +504,7 @@
                 body: JSON.stringify({ targetTable: "leaves", actionType: "insert", rowData: rowData })
             });
             
-            alert("Leave filing streams live to cloud database spreadsheet grid rows!");
+            alert("Leave Request Submitted successfully to Cloud Spreadsheet!");
             e.target.reset();
             syncDatabase();
         }
