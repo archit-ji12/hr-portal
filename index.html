@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise HRMS Portal</title>
+    <!-- External Library for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* Modern Corporate Interface Design Tokens */
@@ -99,6 +100,7 @@
 </head>
 <body>
 
+    <!-- 1. AUTH WINDOW -->
     <div id="login-wrapper" class="login-wrapper">
         <div class="login-container">
             <h2>HR Portal Authentication</h2>
@@ -115,13 +117,16 @@
         </div>
     </div>
 
+    <!-- 2. SYSTEM LAYOUT FRAMEWORK -->
     <div id="app-layout" class="app-layout">
         <nav class="sidebar">
             <div class="sidebar-brand">Corporate HRMS</div>
             <ul class="sidebar-menu">
+                <!-- Employee Tabs -->
                 <li class="sidebar-item" id="nav-attendance" style="display: none;" onclick="switchTab('tab-attendance')">⏱️ Daily Attendance</li>
                 <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave Workspace</li>
                 
+                <!-- Admin Tabs -->
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
                 <li class="sidebar-item" id="nav-admin-notice" style="display: none;" onclick="switchTab('tab-admin-notice')">📢 Broadcast Notice (PDF)</li>
                 <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Shift Logs</li>
@@ -152,6 +157,7 @@
             </header>
 
             <div class="workspace-panel">
+                <!-- TAB 1: ATTENDANCE -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
@@ -163,6 +169,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 2: EMPLOYEE LEAVES -->
                 <div id="tab-leave-apply" class="tab-content">
                     <div class="card">
                         <h2>File Leave Application</h2>
@@ -185,14 +192,16 @@
                     </div>
                 </div>
 
+                <!-- TAB 3: ADMIN DASHBOARD -->
                 <div id="tab-admin-dashboard" class="tab-content">
                     <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
                         <h2>Executive Management Workspace</h2>
-                        <p>Welcome back, Sir. Distributed web script arrays are active.</p>
-                        <button style="background: #2563eb; width: auto; padding: 10px 24px;" onclick="forceLocalSyncDraw()">🔄 Quick Force Sync Refresh</button>
+                        <p>Welcome back, Sir. Distributed web script arrays are active. Click the button below to actively download all global employee data from the Google Sheet.</p>
+                        <button id="sync-btn" style="background: #2563eb; width: auto; padding: 10px 24px;" onclick="syncDatabaseGlobal()">🔄 Quick Force Sync Refresh</button>
                     </div>
                 </div>
 
+                <!-- TAB 4: NEW PDF NOTICE GENERATOR FOR ADMINS -->
                 <div id="tab-admin-notice" class="tab-content">
                     <div class="card card-full">
                         <h2>📢 Broadcast Official Notice (PDF)</h2>
@@ -208,6 +217,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 5: ADMIN SHIFT LOGS -->
                 <div id="tab-admin-logs" class="tab-content">
                     <div class="card card-full">
                         <h2>Master Employee Attendance Logs</h2>
@@ -217,10 +227,11 @@
                                 <tbody id="log-table-body"></tbody>
                             </table>
                         </div>
-                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs('logs')">Clear Shift Displays</button>
+                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs('logs')">Clear Local View</button>
                     </div>
                 </div>
 
+                <!-- TAB 6: ADMIN LEAVE APPROVALS -->
                 <div id="tab-admin-leaves" class="tab-content">
                     <div class="card card-full">
                         <h2>Review Pending Staff Leave Board</h2>
@@ -231,13 +242,14 @@
                                 <tbody id="admin-leave-table-body"></tbody>
                             </table>
                         </div>
-                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs('leaves')">Clear Leave Displays</button>
+                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs('leaves')">Clear Local View</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- HIDDEN PDF GENERATION TEMPLATE -->
     <div id="pdf-export-container">
         <div class="letterhead" id="print-letterhead">
             <div class="lh-header">
@@ -257,6 +269,7 @@
         </div>
     </div>
 
+    <!-- AI AGENT CHAT MODULE -->
     <div class="chat-widget">
         <button class="chat-toggle" onclick="toggleChatWindow()">🤖</button>
         <div class="chat-box" id="hrms-ai-box">
@@ -317,15 +330,43 @@
                 document.getElementById('nav-admin-leaves').style.display = 'block';
                 document.getElementById('employee-notification-bell').style.display = 'none';
                 switchTab('tab-admin-dashboard');
+                syncDatabaseGlobal(); // Automatically pull global data for CEO/Owner upon login
             } else {
                 document.getElementById('nav-attendance').style.display = 'block';
                 document.getElementById('nav-leave-apply').style.display = 'block';
                 document.getElementById('employee-notification-bell').style.display = 'block';
                 switchTab('tab-attendance');
                 checkPunches();
-                evalNotificationsEngine();
+                syncDatabaseGlobal(); // Pull status updates for Employee upon login
             }
-            forceLocalSyncDraw();
+        }
+
+        // --- THE FIX: GLOBAL CLOUD SYNCHRONIZATION FUNCTION ---
+        // This function actively pulls cross-device punches and leave updates down from Google Sheets!
+        async function syncDatabaseGlobal() {
+            try {
+                const syncBtn = document.getElementById('sync-btn');
+                if(syncBtn) syncBtn.innerText = "⏳ Downloading Cloud Data...";
+
+                let response = await fetch(GOOGLE_DATABASE_URL);
+                let data = await response.json();
+                
+                if(data.logs && data.logs.length > 0) {
+                    localStorage.setItem('master_attendance_logs_arr', JSON.stringify(data.logs));
+                }
+                if(data.leaves && data.leaves.length > 0) {
+                    localStorage.setItem('master_leaves_logs_arr', JSON.stringify(data.leaves));
+                }
+
+                forceLocalSyncDraw();
+                if(currentUser && currentUser.role === 'employee') evalNotificationsEngine();
+                
+                if(syncBtn) syncBtn.innerText = "🔄 Quick Force Sync Refresh";
+            } catch (err) {
+                console.log("Cloud sync delayed or offline. Using local cache.");
+                if(document.getElementById('sync-btn')) document.getElementById('sync-btn').innerText = "🔄 Quick Force Sync Refresh";
+                forceLocalSyncDraw();
+            }
         }
 
         // --- PDF GENERATION FUNCTION ---
@@ -338,17 +379,14 @@
                 return;
             }
 
-            // Map inputs to the hidden HTML template
             document.getElementById('pdf-out-date').innerText = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             document.getElementById('pdf-out-subject').innerText = subject;
             document.getElementById('pdf-out-body').innerText = body;
             document.getElementById('pdf-out-signer').innerText = `${currentUser.name}\n${currentUser.title}`;
 
-            // Reveal template temporarily for html2pdf
             const element = document.getElementById('print-letterhead');
             document.getElementById('pdf-export-container').style.display = 'block';
 
-            // Configure PDF settings
             const opt = {
                 margin:       0,
                 filename:     `Official_Notice_${new Date().getTime()}.pdf`,
@@ -357,9 +395,7 @@
                 jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
-            // Generate and save PDF
             html2pdf().set(opt).from(element).save().then(() => {
-                // Hide template again after generation
                 document.getElementById('pdf-export-container').style.display = 'none';
                 document.getElementById('pdf-subject-input').value = "";
                 document.getElementById('pdf-body-input').value = "";
@@ -451,8 +487,8 @@
             let newNotificationsCount = 0;
 
             leaves.forEach(row => {
-                const storedNoticeState = localStorage.getItem(`notify_status_${row[5]}`);
-                if (storedNoticeState && storedNoticeState !== "Pending") {
+                const storedNoticeState = localStorage.getItem(`notify_status_${row[5]}`) || row[4];
+                if (storedNoticeState !== "Pending" && storedNoticeState !== undefined) {
                     newNotificationsCount++;
                     alertItemsHTML += `<li class="notification-item" style="border-left:3px solid ${storedNoticeState==='Approved'?'#10b981':'#ef4444'}; padding-left:5px;">
                         Your leave filing for <strong>${row[2]}</strong> was marked <span class="badge status-${storedNoticeState}">${storedNoticeState}</span>.
@@ -464,6 +500,8 @@
                 badge.innerText = newNotificationsCount;
                 badge.style.display = "flex";
                 alertContainer.innerHTML = alertItemsHTML;
+            } else {
+                alertContainer.innerHTML = `<li class="notification-item" style="text-align: center; color:#94a3b8;">No new filing alerts.</li>`;
             }
         }
 
@@ -497,12 +535,11 @@
                         return `<tr><td>${row[2]}</td><td>${row[3]}</td><td><span class="badge status-${cloudCheckedState}">${cloudCheckedState}</span></td></tr>`;
                     }).join('');
                 }
-                evalNotificationsEngine();
             }
         }
 
         function clearLocalLogs(target) {
-            if(confirm("Confirm resetting local viewport caches?")) {
+            if(confirm("Confirm resetting local viewport caches? Note: Data in Google Sheets remains safe.")) {
                 if(target === 'logs') localStorage.removeItem('master_attendance_logs_arr');
                 if(target === 'leaves') localStorage.removeItem('master_leaves_logs_arr');
                 forceLocalSyncDraw();
@@ -541,6 +578,9 @@
                 }
                 if(val.includes('pdf') || val.includes('notice')) {
                     response = "To generate an official PDF notice, go to the '📢 Broadcast Notice (PDF)' tab. Enter the subject and body, and click Generate. The system will format it onto a corporate letterhead automatically!";
+                }
+                if(val.includes('sync') || val.includes('punch')) {
+                    response = "If punches aren't showing across devices, simply click the blue 'Quick Force Sync Refresh' button on the Admin Dashboard to fetch live data directly from Google Sheets.";
                 }
                 
                 scroller.innerHTML += `<div class="chat-msg chat-ai">${response}</div>`;
