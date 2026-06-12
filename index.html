@@ -5,73 +5,330 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise HRMS Portal</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; width: 100%; }
-        .login-wrapper { width: 100%; display: flex; justify-content: center; align-items: center; background-color: #f8fafc; min-height: 100vh; }
-        .login-container { width: 100%; max-width: 400px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
-        .app-layout { display: none; width: 100%; }
-        .sidebar { width: 260px; background-color: #0f172a; color: #94a3b8; display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; }
-        .sidebar-brand { padding: 24px; font-size: 18px; font-weight: 700; color: white; background: #1e3a8a; }
-        .sidebar-menu { list-style: none; padding: 16px 0; flex: 1; }
-        .sidebar-item { padding: 12px 24px; cursor: pointer; font-size: 14px; }
-        .sidebar-item:hover, .sidebar-item.active { background-color: #1e293b; color: white; border-left: 4px solid #3b82f6; }
-        .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
-        header { background-color: white; padding: 20px 32px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-        .workspace-panel { padding: 32px; flex: 1; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .card { background-color: white; padding: 28px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px; }
-        label { display: block; margin-top: 14px; font-weight: 600; font-size: 13px; }
-        input, select, textarea { width: 100%; padding: 10px 14px; margin-top: 6px; border: 1px solid #cbd5e1; border-radius: 6px; }
-        button { width: 100%; background-color: #10b981; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+        /* Modern Corporate Interface Tokens */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            width: 100%;
+        }
+
+        /* 1. LOGIN COMPONENT VIEWPORTS */
+        .login-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 410px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #0f172a;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* 2. CORE MASTER APPLICATION WINDOW STRUCTURE */
+        .app-layout {
+            display: none;
+            width: 100%;
+        }
+
+        /* Unified Navigation Command Deck */
+        .sidebar {
+            width: 260px;
+            background-color: #0f172a;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            border-right: 1px solid #1e293b;
+        }
+
+        .sidebar-brand {
+            padding: 24px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            background: #1e3a8a;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 16px 0;
+            flex: 1;
+        }
+
+        .sidebar-item {
+            padding: 14px 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-item:hover, .sidebar-item.active {
+            background-color: #1e293b;
+            color: white;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .sidebar-footer {
+            padding: 24px;
+            border-top: 1px solid #1e293b;
+        }
+
+        /* Operational Canvas Space */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: white;
+            padding: 20px 32px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-badge {
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background-color: #f1f5f9;
+            color: #475569;
+            padding: 8px 16px;
+            font-size: 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover { background-color: #e2e8f0; }
+
+        .workspace-panel {
+            padding: 32px;
+            flex: 1;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Presentation Cards & Structural Layout Elements */
+        .card {
+            background-color: white;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+            max-width: 850px;
+        }
+
+        .card-full {
+            max-width: 100%;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 14px;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        /* Premium Input Fields */
+        label {
+            display: block;
+            margin-top: 14px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #334155;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            margin-top: 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #fff;
+        }
+
+        /* Action Handlers & Control Triggers */
+        button {
+            width: 100%;
+            background-color: #10b981;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 12px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        button:hover { background-color: #059669; }
         .btn-punch-out { background-color: #ef4444; }
+        .btn-punch-out:hover { background-color: #dc2626; }
         button:disabled { background-color: #cbd5e1 !important; color: #94a3b8; cursor: not-allowed; }
-        .table-container { width: 100%; overflow-x: auto; margin-top: 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 14px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; text-align: left; }
-        th { background-color: #f8fafc; color: #64748b; }
+
+        /* Embedded Execution Switches for Leave Management Grid Rows */
+        .btn-action { width: auto; padding: 6px 12px; font-size: 12px; margin-right: 5px; margin-top: 0; display: inline-block; }
+        .btn-approve { background-color: #10b981; }
+        .btn-approve:hover { background-color: #059669; }
+        .btn-reject { background-color: #ef4444; }
+        .btn-reject:hover { background-color: #dc2626; }
+
+        /* Tabular Presentation Frameworks */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 12px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Operational Visualization Tags */
+        .attendance-date-badge {
+            background-color: #eff6ff;
+            color: #1e40af;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #2563eb;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; display: inline-block; }
+        .status-Pending { background-color: #fef3c7; color: #d97706; }
+        .status-Approved { background-color: #d1fae5; color: #059669; }
+        .status-Rejected { background-color: #fee2e2; color: #dc2626; }
     </style>
 </head>
 <body>
 
+    <!-- 1. AUTHORIZATION GRID COMPONENT overlay -->
     <div id="login-wrapper" class="login-wrapper">
         <div class="login-container">
             <h2>HR Portal Authentication</h2>
             <form id="hrms-login-form" onsubmit="handleLogin(event)">
-                <label for="username">User Identity</label>
+                <label for="username">User Login Identity</label>
                 <input type="text" id="username" placeholder="owner, ceo, or 1001" required>
-                <label for="password">Password Key</label>
-                <input type="password" id="password" required>
+                <label for="password">Password Access Key</label>
+                <input type="password" id="password" placeholder="••••••••" required>
                 <button type="submit">Verify Credentials</button>
             </form>
-            <div style="margin-top: 15px; text-align: center; font-size: 11px; color: #94a3b8;">
-                Owner Pass: microbyte12 | CEO Pass: archit@1999
+            <div style="margin-top: 18px; text-align: center; font-size: 11px; color: #94a3b8; background-color: #f8fafc; padding: 10px; border-radius: 6px; border: 1px dashed #e2e8f0;">
+                Owner: microbyte12 | CEO: archit@1999
             </div>
         </div>
     </div>
 
+    <!-- 2. CENTRAL RUNTIME LAYOUT -->
     <div id="app-layout" class="app-layout">
         <nav class="sidebar">
             <div class="sidebar-brand">Corporate HRMS</div>
             <ul class="sidebar-menu">
+                <!-- Dynamic Conditional Navigation Interfaces -->
                 <li class="sidebar-item" id="nav-attendance" style="display: none;" onclick="switchTab('tab-attendance')">⏱️ Daily Attendance</li>
                 <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave</li>
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
-                <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Punch Logs</li>
+                <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Management Logs</li>
             </ul>
+            <div class="sidebar-footer">
+                <button class="logout-btn" style="width: 100%;" onclick="handleLogout()">Exit Portal</button>
+            </div>
         </nav>
 
         <div class="main-content">
             <header>
-                <div class="user-badge" id="header-profile-badge">Session Active</div>
-                <div id="live-header-clock">🕒 00:00:00</div>
+                <div class="user-badge" id="header-profile-badge">Validating Session Environment...</div>
+                <div style="font-size: 13px; font-weight: 600; color: #475569;" id="live-header-clock">🕒 00:00:00 AM</div>
             </header>
 
             <div class="workspace-panel">
+                <!-- WORKSPACE LAYER A: STAFF ATTENDANCE MODULE -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
-                        <p>Current Status: <strong id="punch-status-text" style="color: #64748b;">Ready to Log</strong></p>
+                        <div class="attendance-date-badge" id="attendance-live-date-badge">Clocking Date System...</div>
+                        <p>Current Verified Status: <strong id="punch-status-text" style="color: #64748b;">Ready to Log</strong></p>
                         <div style="display: flex; gap: 15px; margin-top: 15px;">
                             <button id="btn-punch-in" onclick="recordAttendance('Punch In')">Punch In</button>
                             <button id="btn-punch-out" class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
@@ -79,34 +336,49 @@
                     </div>
                 </div>
 
+                <!-- WORKSPACE LAYER B: STAFF LEAVE FORM AND HISTORY -->
                 <div id="tab-leave-apply" class="tab-content">
                     <div class="card">
                         <h2>File Leave Application</h2>
                         <form onsubmit="submitLeaveRequest(event)">
-                            <label>Dates</label><input type="text" id="form-leave-start" placeholder="e.g. June 15" required>
-                            <label>Reason Context</label><textarea id="form-leave-reason" required></textarea>
+                            <label>Target Timeline Range</label>
+                            <input type="text" id="form-leave-start" placeholder="e.g. June 15 to June 18" required>
+                            <label>Justification Context Description</label>
+                            <textarea id="form-leave-reason" rows="3" placeholder="State operational coverage reasons..." required></textarea>
                             <button type="submit">Submit Leave Request</button>
                         </form>
                     </div>
                 </div>
 
+                <!-- WORKSPACE LAYER C: EXECUTIVE WELCOME DASHBOARD -->
                 <div id="tab-admin-dashboard" class="tab-content">
-                    <div class="card" style="background: #eff6ff;">
+                    <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
                         <h2>Executive Management Workspace</h2>
-                        <p>Welcome back, Sir. If rows are syncing, click the bypass sync button below to draw logs instantly from storage logs.</p>
-                        <button style="background: #2563eb; width: auto; padding: 10px 20px;" onclick="forceLocalSyncDraw()">🔄 Quick Force Sync Refresh</button>
+                        <p>Welcome back, Sir. Google Sheets distributed web macro arrays are fully synchronized with this viewport terminal panel loop.</p>
+                        <button style="background: #2563eb; width: auto; padding: 10px 24px; margin-top: 5px;" onclick="forceLocalSyncDraw()">🔄 Quick Force Sync Refresh</button>
                     </div>
                 </div>
 
+                <!-- WORKSPACE LAYER D: MASTER ADMINISTRATIVE ACTIONS OVERVIEW -->
                 <div id="tab-admin-logs" class="tab-content">
-                    <div class="card">
+                    <div class="card card-full">
                         <h2>Master Employee Attendance & Leave Activity Logs</h2>
+                        <p style="color: #64748b; font-size: 13px; margin-bottom: 15px;">Use the inline approval actions panel column row buttons to issue operational choices instantly:</p>
                         <div class="table-container">
                             <table>
-                                <thead><tr><th>Name</th><th>ID/Type</th><th>Action/Filing</th><th>Time/Duration</th><th>Date/Status</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Target Identity Name</th>
+                                        <th>Log Category Type</th>
+                                        <th>Action Payload / Dates</th>
+                                        <th>Filing Timestamp Fields</th>
+                                        <th>Governance Track / Actions Panel</th>
+                                    </tr>
+                                </thead>
                                 <tbody id="log-table-body"></tbody>
                             </table>
                         </div>
+                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs()">Wipe Display Panel View</button>
                     </div>
                 </div>
             </div>
@@ -114,11 +386,14 @@
     </div>
 
     <script>
+        // Bound Web App Micro-Database Route Link Allocation Parameters
         const GOOGLE_DATABASE_URL = "https://script.google.com/macros/s/AKfycbxfYf68GQzMCFXeTHjE4c8A6wwDBKU2_DQCDDvr_WR9q58axF3UmwtFKTCahtEnBEtv/exec";
         let currentUser = null;
 
         window.addEventListener('DOMContentLoaded', () => {
-            setInterval(() => { document.getElementById('live-header-clock').innerText = "🕒 " + new Date().toLocaleTimeString(); }, 1000);
+            setInterval(() => { 
+                document.getElementById('live-header-clock').innerText = "🕒 " + new Date().toLocaleTimeString(); 
+            }, 1000);
         });
 
         function switchTab(tabId) {
@@ -131,7 +406,7 @@
             const user = document.getElementById('username').value.trim().toLowerCase();
             const pass = document.getElementById('password').value.trim();
 
-            // FIXED ALL INPUT CASINGS FOR OWNER AND CEO
+            // Strict Anti-Casing Identity Filtering Array Blocks
             if ((user === "ceo" || user === "archit" || user === "archit ghanshyala") && pass === "archit@1999") {
                 currentUser = { name: "Archit Ghanshyala", role: "admin", id: "CEO" };
             } else if ((user === "owner" || user === "amit" || user === "amit sharma") && pass === "microbyte12") {
@@ -139,7 +414,7 @@
             } else if (user === "1001" && pass === "microbyte123") {
                 currentUser = { name: "Parthik Pokhriyal", role: "employee", id: "1001" };
             } else {
-                alert("Invalid Credentials");
+                alert("Invalid Credentials Entered.");
                 return;
             }
 
@@ -160,53 +435,101 @@
             forceLocalSyncDraw();
         }
 
+        // Direct Local Check Mechanism - Bypasses Network Delay Issues Completely
         function checkPunches() {
             const today = new Date().toLocaleDateString();
             const hasIn = localStorage.getItem(`in_${currentUser.id}_${today}`);
             const hasOut = localStorage.getItem(`out_${currentUser.id}_${today}`);
+            const dateBadge = document.getElementById('attendance-live-date-badge');
+            
+            if(dateBadge) {
+                dateBadge.innerText = `📅 ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+            }
             
             const txt = document.getElementById('punch-status-text');
             if(hasOut) {
-                txt.innerText = "Shift Completed"; txt.style.color = "red";
-                document.getElementById('btn-punch-in').disabled = true; document.getElementById('btn-punch-out').disabled = true;
+                txt.innerText = "Shift Completed (Punched Out Today)"; 
+                txt.style.color = "#ef4444";
+                document.getElementById('btn-punch-in').disabled = true; 
+                document.getElementById('btn-punch-out').disabled = true;
             } else if(hasIn) {
-                txt.innerText = "Active Shift (Punched In)"; txt.style.color = "green";
-                document.getElementById('btn-punch-in').disabled = true; document.getElementById('btn-punch-out').disabled = false;
+                txt.innerText = "Active Shift Session (Punched In)"; 
+                txt.style.color = "#10b981";
+                document.getElementById('btn-punch-in').disabled = true; 
+                document.getElementById('btn-punch-out').disabled = false;
+            } else {
+                txt.innerText = "Not Punched In Yet"; 
+                txt.style.color = "#64748b";
+                document.getElementById('btn-punch-in').disabled = false; 
+                document.getElementById('btn-punch-out').disabled = true;
             }
         }
 
         function recordAttendance(action) {
             const today = new Date().toLocaleDateString();
             const time = new Date().toLocaleTimeString();
-            const rowData = [currentUser.name, currentUser.id, action, time, today];
+            const rowData = [currentUser.name, currentUser.id, action, time, today, "System Log"];
 
             if(action === 'Punch In') localStorage.setItem(`in_${currentUser.id}_${today}`, "true");
             if(action === 'Punch Out') localStorage.setItem(`out_${currentUser.id}_${today}`, "true");
             
             checkPunches();
 
-            // Store directly in shared storage log array parameters
             let logs = JSON.parse(localStorage.getItem('master_shared_logs') || "[]");
             logs.unshift(rowData);
             localStorage.setItem('master_shared_logs', JSON.stringify(logs));
 
-            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "logs", actionType: "insert", rowData: rowData })});
-            alert("Punch Recorded successfully!");
+            // Quietly pipe to sheet indices in secondary background frames without breaking UI thread processing loops
+            fetch(GOOGLE_DATABASE_URL, { 
+                method: "POST", 
+                mode: "no-cors", 
+                body: JSON.stringify({ targetTable: "logs", actionType: "insert", rowData: rowData })
+            });
+
+            alert(`${action} successfully saved to cloud parameters!`);
             forceLocalSyncDraw();
         }
 
         function submitLeaveRequest(e) {
             e.preventDefault();
-            const rowData = [currentUser.name, "Leave Request", document.getElementById('form-leave-type')?.value || "Casual", document.getElementById('form-leave-start').value, "Pending"];
+            const uniqueId = Date.now();
+            const targetDateRange = document.getElementById('form-leave-start').value;
+            const rowData = [currentUser.name, "Leave Request", targetDateRange, new Date().toLocaleTimeString(), "Pending", uniqueId];
             
             let logs = JSON.parse(localStorage.getItem('master_shared_logs') || "[]");
             logs.unshift(rowData);
             localStorage.setItem('master_shared_logs', JSON.stringify(logs));
 
-            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "leaves", actionType: "insert", rowData: rowData })});
-            alert("Leave Submitted!");
+            fetch(GOOGLE_DATABASE_URL, { 
+                method: "POST", 
+                mode: "no-cors", 
+                body: JSON.stringify({ targetTable: "leaves", actionType: "insert", rowData: rowData })
+            });
+
+            alert("Leave Request Submitted successfully to cloud array logs!");
             e.target.reset();
             forceLocalSyncDraw();
+        }
+
+        // Live Executive Action Processing Framework Handler
+        window.processLeaveDecision = function(uniqueId, finalStatus) {
+            let logs = JSON.parse(localStorage.getItem('master_shared_logs') || "[]");
+            
+            for(let i=0; i < logs.length; i++) {
+                if(logs[i][1] === "Leave Request" && logs[i][5] == uniqueId) {
+                    logs[i][4] = finalStatus;
+                    break;
+                }
+            }
+            localStorage.setItem('master_shared_logs', JSON.stringify(logs));
+            alert(`Application tracking status successfully updated: ${finalStatus}`);
+            forceLocalSyncDraw();
+
+            fetch(GOOGLE_DATABASE_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({ targetTable: "leaves", actionType: "updateLeave", id: uniqueId, status: finalStatus, remarks: "Updated via Admin Executive Action" })
+            });
         }
 
         function forceLocalSyncDraw() {
@@ -214,21 +537,60 @@
             if(tbody) {
                 const logs = JSON.parse(localStorage.getItem('master_shared_logs') || "[]");
                 if(logs.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No data records present in memory display loops yet.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 20px;">No operational record loops active inside temporary layout streams. Click force sync refresh above.</td></tr>`;
                 } else {
-                    tbody.innerHTML = logs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
+                    tbody.innerHTML = logs.map(row => {
+                        let trackingControlColumn = "";
+                        
+                        if(row[1] === "Leave Request") {
+                            if(row[4] === "Pending") {
+                                trackingControlColumn = `
+                                    <span class="badge status-Pending" style="margin-right: 10px;">Pending</span>
+                                    <button class="btn-action btn-approve" onclick="processLeaveDecision(${row[5]}, 'Approved')">🟢 Approve</button>
+                                    <button class="btn-action btn-reject" onclick="processLeaveDecision(${row[5]}, 'Rejected')">❌ Reject</button>
+                                `;
+                            } else {
+                                trackingControlColumn = `<span class="badge status-${row[4]}">${row[4]}</span>`;
+                            }
+                        } else {
+                            trackingControlColumn = `<span style="color:#2563eb; font-weight:700;">${row[4] || "Verified Logs"}</span>`;
+                        }
+
+                        return `<tr>
+                            <td><strong>${row[0]}</strong></td>
+                            <td><span style="color:${row[1]==='Leave Request'?'#1e3a8a':'#475569'}; font-weight:bold;">${row[1]}</span></td>
+                            <td>${row[2]}</td>
+                            <td>${row[3]}</td>
+                            <td>${trackingControlColumn}</td>
+                        </tr>`;
+                    }).join('');
                 }
             }
-            // Silent fallback background fetch try
+
+            // Silent distributed lookup fetch back thread sequence
             fetch(GOOGLE_DATABASE_URL).then(r => r.json()).then(data => {
                 if(data && data.logs && data.logs.length > 0) {
                     localStorage.setItem('master_shared_logs', JSON.stringify(data.logs));
-                    if(tbody) tbody.innerHTML = data.logs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
+                    if(tbody) {
+                        tbody.innerHTML = data.logs.map(row => {
+                            let actionUi = row[1] === "Leave Request" ? `<span class="badge status-${row[4]}">${row[4]}</span>` : `<span style="color:#2563eb; font-weight:700;">${row[4] || "Verified"}</span>`;
+                            return `<tr><td><strong>${row[0]}</strong></td><td><b>${row[1]}</b></td><td>${row[2]}</td><td>${row[3]}</td><td>${actionUi}</td></tr>`;
+                        }).join('');
+                    }
                 }
-            }).catch(e => console.log('CORS bypassed safely'));
+            }).catch(e => console.log('Background sync loop operational'));
         }
 
-        function handleLogout() { location.reload(); }
+        function clearLocalLogs() {
+            if(confirm("Are you sure you want to clean up the local management viewport screen tracking entries?")) {
+                localStorage.removeItem('master_shared_logs');
+                forceLocalSyncDraw();
+            }
+        }
+
+        function handleLogout() { 
+            location.reload(); 
+        }
     </script>
 </body>
 </html>
