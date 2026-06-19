@@ -631,4 +631,211 @@
             const uniqueFineId = Date.now();
             
             const fineRow = [empName, empId, reason, amount, new Date().toLocaleTimeString(), new Date().toLocaleDateString(), "Approved", uniqueFineId];
-            let finesArr = JSON.parse(localStorage.getItem('master
+            let finesArr = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
+            finesArr.unshift(fineRow);
+            localStorage.setItem('master_fines_arr', JSON.stringify(finesArr));
+
+            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "fines", actionType: "insert", rowData: fineRow }) });
+            
+            alert(`Custom deduction of ₹${amount} applied successfully!`);
+            e.target.reset();
+            forceLocalSyncDraw();
+        }
+
+        window.processFineDecision = function(uniqueId, finalStatus) {
+            let fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
+            for(let i=0; i < fines.length; i++) {
+                if(fines[i][7] == uniqueId) {
+                    fines[i][6] = finalStatus;
+                    break;
+                }
+            }
+            localStorage.setItem('master_fines_arr', JSON.stringify(fines));
+            forceLocalSyncDraw();
+        }
+
+        function renderEmployeeSalary() {
+            if(!currentUser || currentUser.role !== 'employee') return;
+            const fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
+            let totalDeductions = 0;
+            let fineHtml = "";
+
+            fines.forEach(row => {
+                if(row[1] == currentUser.id) {
+                    // Check if Admin approved it
+                    const status = row[6] || "Pending";
+                    if(status === "Approved") {
+                        totalDeductions += parseInt(row[3]);
+                    }
+                    fineHtml += `<tr><td>${row[2]}</td><td>₹${row[3]}</td><td>${row[5]}</td><td><span class="badge status-${status}">${status}</span></td></tr>`;
+                }
+            });
+
+            document.getElementById('emp-fines-tbody').innerHTML = fineHtml || `<tr><td colspan="4" style="text-align:center;">No fines recorded.</td></tr>`;
+            document.getElementById('emp-total-deductions').innerText = `- ₹${totalDeductions}`;
+            
+            const netPay = BASE_SALARY - totalDeductions;
+            document.getElementById('emp-net-salary').innerText = `₹${netPay}`;
+        }
+
+
+        // --- LEAVES ENGINE ---
+        function submitLeaveRequest(e) {
+            e.preventDefault();
+            const uniqueId = Date.now();
+            const timeline = document.getElementById('form-leave-start').value;
+            const timeField = new Date().toLocaleTimeString();
+            const rowData = [currentUser.name, "Leave Request", timeline, timeField, "Pending", uniqueId];
+            
+            let leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
+            leaves.unshift(rowData);
+            localStorage.setItem('master_leaves_logs_arr', JSON.stringify(leaves));
+
+            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "leaves", actionType: "insert", rowData: rowData })});
+            alert("Leave application sent straight to executive review dashboard!");
+            e.target.reset();
+            forceLocalSyncDraw();
+        }
+
+        window.processLeaveDecision = function(uniqueId, finalStatus) {
+            let leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
+            for(let i=0; i < leaves.length; i++) {
+                if(leaves[i][5] == uniqueId) {
+                    leaves[i][4] = finalStatus;
+                    localStorage.setItem(`notify_status_${uniqueId}`, finalStatus);
+                    break;
+                }
+            }
+            localStorage.setItem('master_leaves_logs_arr', JSON.stringify(leaves));
+            forceLocalSyncDraw();
+            
+            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "leaves", actionType: "updateLeave", id: uniqueId, status: finalStatus }) });
+        }
+
+        function evalNotificationsEngine() {
+            const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
+            const alertContainer = document.getElementById('notification-list-container');
+            const badge = document.getElementById('bell-badge-count');
+            
+            let alertItemsHTML = "";
+            let newNotificationsCount = 0;
+
+            leaves.forEach(row => {
+                if(row[0] === currentUser.name) {
+                    const storedNoticeState = localStorage.getItem(`notify_status_${row[5]}`) || row[4];
+                    if (storedNoticeState !== "Pending" && storedNoticeState !== undefined) {
+                        newNotificationsCount++;
+                        alertItemsHTML += `<li class="notification-item" style="border-left:3px solid ${storedNoticeState==='Approved'?'#10b981':'#ef4444'}; padding-left:5px;">
+                            Your leave filing for <strong>${row[2]}</strong> was marked <span class="badge status-${storedNoticeState}">${storedNoticeState}</span>.
+                        </li>`;
+                    }
+                }
+            });
+
+            if(newNotificationsCount > 0) {
+                badge.innerText = newNotificationsCount;
+                badge.style.display = "flex";
+                alertContainer.innerHTML = alertItemsHTML;
+            } else {
+                alertContainer.innerHTML = `<li class="notification-item" style="text-align: center; color:#94a3b8;">No new filing alerts.</li>`;
+            }
+        }
+
+        function forceLocalSyncDraw() {
+            // Logs Drawing
+            const logBody = document.getElementById('log-table-body');
+            if(logBody) {
+                const logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
+                logBody.innerHTML = logs.length === 0 ? `<tr><td colspan="5" style="text-align:center;">No entries active.</td></tr>` : 
+                    logs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td><span style="color:${row[2] && row[2].includes && row[2].includes('⚠️') ? '#ef4444' : '#1e293b'}; font-weight:600;">${row[2]}</span></td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
+            }
+
+            // Leaves Drawing
+            const adminLeaveBody = document.getElementById('admin-leave-table-body');
+            if(adminLeaveBody) {
+                const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
+                adminLeaveBody.innerHTML = leaves.length === 0 ? `<tr><td colspan="5" style="text-align:center;">No requests active.</td></tr>` :
+                    leaves.map(row => {
+                        let actionsUi = row[4] === "Pending" ? `
+                            <button class="btn-action btn-approve" onclick="processLeaveDecision(${row[5]}, 'Approved')">🟢 Approve</button>
+                            <button class="btn-action btn-reject" onclick="processLeaveDecision(${row[5]}, 'Rejected')">❌ Reject</button>` : 
+                            `<span class="badge status-${row[4]}">${row[4]}</span>`;
+                        return `<tr><td><strong>${row[0]}</strong></td><td><b>${row[1]}</b></td><td>${row[2]}</td><td>${row[3]}</td><td>${actionsUi}</td></tr>`;
+                    }).join('');
+            }
+
+            // Admin Fines Ledger Drawing
+            const finesBody = document.getElementById('admin-fines-table-body');
+            if(finesBody) {
+                const fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
+                finesBody.innerHTML = fines.length === 0 ? `<tr><td colspan="5" style="text-align:center;">No fines logged.</td></tr>` :
+                    fines.map(row => {
+                        let status = row[6] || "Pending";
+                        let actionsUi = status === "Pending" ? `
+                            <button class="btn-action btn-approve" onclick="processFineDecision(${row[7]}, 'Approved')">🟢 Approve</button>
+                            <button class="btn-action btn-reject" onclick="processFineDecision(${row[7]}, 'Rejected')">❌ Reject</button>` : 
+                            `<span class="badge status-${status}">${status}</span>`;
+                        return `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td style="color:#ef4444; font-weight:bold;">₹${row[3]}</td><td>${actionsUi}</td></tr>`;
+                    }).join('');
+            }
+
+            // Employee UI Updates
+            if(currentUser && currentUser.role === 'employee') {
+                const empPersonalBody = document.getElementById('emp-personal-leave-tbody');
+                if(empPersonalBody) {
+                    const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
+                    empPersonalBody.innerHTML = leaves.filter(r => r[0]===currentUser.name).map(row => {
+                        const cloudCheckedState = localStorage.getItem(`notify_status_${row[5]}`) || row[4];
+                        return `<tr><td>${row[2]}</td><td>${row[3]}</td><td><span class="badge status-${cloudCheckedState}">${cloudCheckedState}</span></td></tr>`;
+                    }).join('');
+                }
+                renderEmployeeSalary();
+            }
+        }
+
+        function clearLocalLogs(target) {
+            if(confirm("Confirm resetting local viewport caches? Note: Data in Google Sheets remains safe.")) {
+                if(target === 'fines') localStorage.removeItem('master_fines_arr');
+                if(target === 'all') {
+                    localStorage.removeItem('master_attendance_logs_arr');
+                    localStorage.removeItem('master_leaves_logs_arr');
+                    localStorage.removeItem('master_fines_arr');
+                }
+                forceLocalSyncDraw();
+            }
+        }
+
+        /* DIGITAL AI ENGINE CHATBOT (SECURE VERSION) */
+        function toggleChatWindow() { const el = document.getElementById('hrms-ai-box'); el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; }
+        function handleChatKey(e) { if(e.key === 'Enter') sendChatQuery(); }
+        function sendChatQuery() {
+            const input = document.getElementById('chat-query-input');
+            const txt = input.value.trim(); if(!txt) return;
+
+            const scroller = document.getElementById('chat-messages-scroll');
+            scroller.innerHTML += `<div class="chat-msg chat-user">${txt}</div>`;
+            input.value = ""; scroller.scrollTop = scroller.scrollHeight;
+
+            setTimeout(() => {
+                let response = "I am your HR AI Assistant. I can help you navigate the system, explain penalty rules, or assist with the Calendar and Salary dashboard.";
+                const val = txt.toLowerCase();
+                
+                if(val.includes('password') || val.includes('login')) { 
+                    response = "For strict corporate security, I cannot share login credentials. Please contact IT Administration."; 
+                }
+                else if(val.includes('fine') || val.includes('salary')) { 
+                    response = "Base salary is ₹17,000. Automatic fines of ₹284 trigger for late/early punches but MUST be approved by the CEO before deduction. The CEO can also add custom deductions in the 'Manage Salary Fines' tab."; 
+                }
+                else if(val.includes('calendar') || val.includes('absent')) { 
+                    response = "The 'Absentee Calendar' scans attendance logs. Red days indicate an employee missed a punch on a weekday. Green days indicate they were present."; 
+                }
+                
+                scroller.innerHTML += `<div class="chat-msg chat-ai">${response}</div>`;
+                scroller.scrollTop = scroller.scrollHeight;
+            }, 400);
+        }
+
+        function handleLogout() { location.reload(); }
+    </script>
+</body>
+</html>
