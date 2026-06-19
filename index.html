@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise HRMS Portal</title>
+    <!-- External Library for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* Modern Corporate Interface Design Tokens */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background-color: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; width: 100%; }
         
-        /* 1. AUTHENTICATION COMPONENT */
+        /* 1. AUTHENTICATION COMPONENT OVERLAY */
         .login-wrapper { width: 100%; display: flex; justify-content: center; align-items: center; background-color: #f8fafc; min-height: 100vh; }
         .login-container { width: 100%; max-width: 410px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
         .login-container h2 { text-align: center; margin-bottom: 24px; color: #0f172a; font-weight: 700; }
@@ -88,18 +89,20 @@
         .salary-value { font-size: 24px; font-weight: bold; }
         .salary-net { color: #10b981; font-size: 32px; }
 
-        /* AI CHATBOT SYSTEM */
+        /* AI CLICK-CHATBOT SYSTEM */
         .chat-widget { position: fixed; bottom: 25px; right: 25px; z-index: 2000; }
         .chat-toggle { width: 56px; height: 56px; border-radius: 50%; background: #0f172a; color: white; border: 2px solid #3b82f6; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
-        .chat-box { display: none; width: 340px; height: 450px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex-direction: column; position: absolute; bottom: 75px; right: 0; overflow: hidden; }
+        .chat-box { display: none; width: 340px; height: 500px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex-direction: column; position: absolute; bottom: 75px; right: 0; overflow: hidden; }
         .chat-header { background: #1e3a8a; color: white; padding: 14px; font-weight: 600; display: flex; justify-content: space-between; font-size: 14px; }
         .chat-messages { flex: 1; padding: 14px; overflow-y: auto; background: #f8fafc; font-size: 13px; display: flex; flex-direction: column; gap: 10px; }
         .chat-msg { padding: 10px 14px; border-radius: 8px; max-width: 85%; line-height: 1.5; }
         .chat-ai { background: white; border: 1px solid #e2e8f0; align-self: flex-start; color: #334155;}
         .chat-user { background: #2563eb; color: white; align-self: flex-end; }
-        .chat-input { display: flex; border-top: 1px solid #e2e8f0; padding: 8px; background: white; }
-        .chat-input input { flex: 1; border: 1px solid #cbd5e1; padding: 8px 12px; margin: 0; border-radius: 4px; outline:none; }
-        .chat-input button { width: auto; margin: 0 0 0 8px; padding: 0 16px; font-size: 13px; background: #2563eb; border-radius: 4px;}
+        
+        /* New Clickable Chat Options */
+        .chat-options { padding: 12px; background: white; border-top: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; }
+        .chat-chip { background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; font-size: 12px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 600; }
+        .chat-chip:hover { background: #e2e8f0; border-color: #94a3b8; }
 
         /* PDF LETTERHEAD TEMPLATE */
         #pdf-export-container { display: none; }
@@ -116,6 +119,7 @@
 </head>
 <body>
 
+    <!-- 1. AUTH WINDOW (SECURE) -->
     <div id="login-wrapper" class="login-wrapper">
         <div class="login-container">
             <h2>HR Portal Authentication</h2>
@@ -129,14 +133,17 @@
         </div>
     </div>
 
+    <!-- 2. SYSTEM LAYOUT FRAMEWORK -->
     <div id="app-layout" class="app-layout">
         <nav class="sidebar">
             <div class="sidebar-brand">Corporate HRMS</div>
             <ul class="sidebar-menu">
+                <!-- Employee Tabs (Hidden from Admins) -->
                 <li class="sidebar-item" id="nav-attendance" style="display: none;" onclick="switchTab('tab-attendance')">⏱️ Daily Attendance</li>
                 <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave Form</li>
                 <li class="sidebar-item" id="nav-emp-salary" style="display: none;" onclick="switchTab('tab-emp-salary')">💰 My Salary & Fines</li>
                 
+                <!-- Admin Tabs (Hidden from Employees) -->
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
                 <li class="sidebar-item" id="nav-admin-calendar" style="display: none;" onclick="switchTab('tab-admin-calendar')">📅 Absentee Calendar</li>
                 <li class="sidebar-item" id="nav-admin-fines" style="display: none;" onclick="switchTab('tab-admin-fines')">⚖️ Manage Salary Fines</li>
@@ -169,11 +176,14 @@
             </header>
 
             <div class="workspace-panel">
+                <!-- ================= EMPLOYEE VIEWS ================= -->
+                
+                <!-- TAB 1: ATTENDANCE (EMPLOYEES ONLY) -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
                         <p>Current Status: <strong id="punch-status-text" style="color: #64748b;">Ready to Log</strong></p>
-                        <p style="font-size: 12px; color: #ef4444; margin-top: 8px;">*Warning: Punching in after 1:00 PM or punching out before 8:00 PM logs an automatic ₹284 fine pending Admin approval.</p>
+                        <p style="font-size: 12px; color: #ef4444; margin-top: 8px;">*Warning: Late arrivals (>1:00 PM) or early departures (<8:00 PM) incur a ₹284 fine. Missing a full day incurs a ₹584 fine.</p>
                         <div style="display: flex; gap: 15px; margin-top: 15px;">
                             <button id="btn-punch-in" onclick="recordAttendance('Punch In')">Punch In</button>
                             <button id="btn-punch-out" class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
@@ -181,6 +191,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 2: EMPLOYEE LEAVES (EMPLOYEES ONLY) -->
                 <div id="tab-leave-apply" class="tab-content">
                     <div class="card">
                         <h2>File Leave Application</h2>
@@ -203,6 +214,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 3: EMPLOYEE SALARY (EMPLOYEES ONLY) -->
                 <div id="tab-emp-salary" class="tab-content">
                     <div class="card card-full">
                         <h2>💰 My Monthly Salary Overview</h2>
@@ -233,6 +245,9 @@
                     </div>
                 </div>
 
+                <!-- ================= ADMIN VIEWS ================= -->
+
+                <!-- TAB 4: ADMIN DASHBOARD (ADMINS ONLY) -->
                 <div id="tab-admin-dashboard" class="tab-content">
                     <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
                         <h2>Executive Management Workspace</h2>
@@ -241,6 +256,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 5: ABSENTEE CALENDAR (ADMINS ONLY) -->
                 <div id="tab-admin-calendar" class="tab-content">
                     <div class="card card-full">
                         <h2>📅 Employee Absentee Tracker</h2>
@@ -256,16 +272,19 @@
                         <div class="calendar-grid">
                             <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div>
                             <div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>
-                            </div>
+                            <!-- Days injected via JS -->
+                        </div>
                         <div id="calendar-days-container" class="calendar-grid" style="margin-top: 0;"></div>
                     </div>
                 </div>
 
+                <!-- TAB 6: ADMIN FINES & SALARY (ADMINS ONLY) -->
                 <div id="tab-admin-fines" class="tab-content">
                     <div class="card card-full" style="border-left: 5px solid #ef4444;">
                         <h2>⚖️ Manage Salary Fines & Deductions</h2>
                         <p>Automated fines arrive as "Pending". You must explicitly Approve them to deduct from the ₹17,000 base salary. You can also add custom deductions below.</p>
                         
+                        <!-- Admin Custom Fine Form -->
                         <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
                             <h3 style="font-size: 15px; margin-bottom: 10px;">➕ Add Custom Deduction</h3>
                             <form onsubmit="addCustomFine(event)" style="display: flex; gap: 10px; align-items: flex-end;">
@@ -291,10 +310,10 @@
                                 <tbody id="admin-fines-table-body"></tbody>
                             </table>
                         </div>
-                        <button style="background-color: #ef4444; width: auto; margin-top: 15px; padding: 10px 20px;" onclick="clearLocalLogs('fines')">Clear Fines Cache</button>
                     </div>
                 </div>
 
+                <!-- TAB 7: PDF NOTICE GENERATOR (ADMINS ONLY) -->
                 <div id="tab-admin-notice" class="tab-content">
                     <div class="card card-full">
                         <h2>📢 Broadcast Official Notice (PDF)</h2>
@@ -307,6 +326,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 8: ADMIN SHIFT LOGS (ADMINS ONLY) -->
                 <div id="tab-admin-logs" class="tab-content">
                     <div class="card card-full">
                         <h2>Master Employee Attendance Logs</h2>
@@ -319,6 +339,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 9: ADMIN LEAVE APPROVALS (ADMINS ONLY) -->
                 <div id="tab-admin-leaves" class="tab-content">
                     <div class="card card-full">
                         <h2>Review Pending Staff Leave Board</h2>
@@ -335,6 +356,7 @@
         </div>
     </div>
 
+    <!-- HIDDEN PDF GENERATION TEMPLATE -->
     <div id="pdf-export-container">
         <div class="letterhead" id="print-letterhead">
             <div class="lh-header">
@@ -354,16 +376,21 @@
         </div>
     </div>
 
+    <!-- AI AGENT CHAT MODULE (CLICK SYSTEM) -->
     <div class="chat-widget">
         <button class="chat-toggle" onclick="toggleChatWindow()">🤖</button>
         <div class="chat-box" id="hrms-ai-box">
             <div class="chat-header"><span>HR Support System AI</span><span style="cursor:pointer" onclick="toggleChatWindow()">✖</span></div>
             <div class="chat-messages" id="chat-messages-scroll">
-                <div class="chat-msg chat-ai">Greetings! I am your AI assistant. Need help navigating the system, generating PDF notices, checking the Calendar, or approving fines? Ask me here.</div>
+                <div class="chat-msg chat-ai">Greetings! I am your AI assistant. Click an option below to learn about the system rules.</div>
             </div>
-            <div class="chat-input">
-                <input type="text" id="chat-query-input" placeholder="Type a message..." onkeypress="handleChatKey(event)">
-                <button onclick="sendChatQuery()">Send</button>
+            <!-- Interactive Clickable Options (No Typing Needed!) -->
+            <div class="chat-options">
+                <button class="chat-chip" onclick="triggerBotQuery('What are the Penalty and Fine Rules?', 'Late arrival (>1:00 PM) or early departure (<8:00 PM) is a ₹284 fine. Missing a full weekday triggers a ₹584 fine automatically. All fines require Admin approval.')">❓ What are the Penalty and Fine Rules?</button>
+                <button class="chat-chip" onclick="triggerBotQuery('How is my Salary calculated?', 'Base salary is ₹17,000. Any fine that is explicitly Approved by the CEO is deducted from this total to calculate your Net Payable salary.')">💰 How is my Salary calculated?</button>
+                <button class="chat-chip" onclick="triggerBotQuery('How do I generate an official Notice?', 'If you are an Admin, navigate to the Broadcast Notice tab. Enter the details and click Generate to download a formatted PDF letterhead instantly.')">📄 How do I generate an official Notice?</button>
+                <button class="chat-chip" onclick="triggerBotQuery('How does the Absentee Calendar work?', 'The calendar automatically scans attendance logs. If an employee did not punch in on a weekday, the day turns Red. Weekends remain Yellow.')">📅 How does the Absentee Calendar work?</button>
+                <button class="chat-chip" onclick="triggerBotQuery('I forgot my login password.', 'For strict corporate security, passwords are never shared in this chat. If you have lost your access keys, please contact IT Administration.')">🔒 I forgot my login password.</button>
             </div>
         </div>
     </div>
@@ -410,15 +437,12 @@
             document.getElementById('app-layout').style.display = 'flex';
             document.getElementById('header-profile-badge').innerText = currentUser.name;
 
-            // PERFECTED STRICT ROLE SEPARATION
             if (currentUser.role === 'admin') {
-                // Hide Employee Features Completely
                 document.getElementById('nav-attendance').style.display = 'none';
                 document.getElementById('nav-leave-apply').style.display = 'none';
                 document.getElementById('nav-emp-salary').style.display = 'none';
                 document.getElementById('employee-notification-bell').style.display = 'none';
 
-                // Show Admin Features
                 document.getElementById('nav-admin-dashboard').style.display = 'block';
                 document.getElementById('nav-admin-calendar').style.display = 'block';
                 document.getElementById('nav-admin-fines').style.display = 'block';
@@ -429,7 +453,6 @@
                 switchTab('tab-admin-dashboard');
                 syncDatabaseGlobal(); 
             } else {
-                // Hide Admin Features Completely
                 document.getElementById('nav-admin-dashboard').style.display = 'none';
                 document.getElementById('nav-admin-calendar').style.display = 'none';
                 document.getElementById('nav-admin-fines').style.display = 'none';
@@ -437,7 +460,6 @@
                 document.getElementById('nav-admin-logs').style.display = 'none';
                 document.getElementById('nav-admin-leaves').style.display = 'none';
 
-                // Show Employee Features
                 document.getElementById('nav-attendance').style.display = 'block';
                 document.getElementById('nav-leave-apply').style.display = 'block';
                 document.getElementById('nav-emp-salary').style.display = 'block';
@@ -461,6 +483,9 @@
                 if(data.leaves && data.leaves.length > 0) localStorage.setItem('master_leaves_logs_arr', JSON.stringify(data.leaves));
                 if(data.fines && data.fines.length > 0) localStorage.setItem('master_fines_arr', JSON.stringify(data.fines));
 
+                // NEW: Scan for Midnight Absentee Fines automatically
+                checkAbsenteeFines();
+
                 forceLocalSyncDraw();
                 if(currentUser && currentUser.role === 'employee') {
                     evalNotificationsEngine();
@@ -471,7 +496,47 @@
             } catch (err) {
                 console.log("Cloud sync offline. Using local cache.");
                 if(document.getElementById('sync-btn')) document.getElementById('sync-btn').innerText = "🔄 Quick Force Sync Refresh";
+                
+                checkAbsenteeFines(); // Still run absentee check on local data
                 forceLocalSyncDraw();
+            }
+        }
+
+        // ================= AUTOMATED ABSENTEE FINE ENGINE =================
+        function checkAbsenteeFines() {
+            // Checks if the employee missed a punch yesterday
+            const empId = "1001";
+            const empName = "Parthik Pokhriyal";
+
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toLocaleDateString();
+            const dayOfWeek = yesterday.getDay();
+
+            // Skip weekends (Sunday = 0, Saturday = 6)
+            if (dayOfWeek === 0 || dayOfWeek === 6) return;
+
+            let fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
+            // Check if already fined for absent yesterday to prevent duplicates
+            let alreadyFined = fines.some(f => f[1] === empId && f[5] === yesterdayStr && f[2] === "Missed Shift (Absent)");
+            if (alreadyFined) return;
+
+            // Check if they actually punched in yesterday
+            let logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
+            let punchedYesterday = logs.some(l => l[1] === empId && l[4] === yesterdayStr && l[2].includes('Punch In'));
+
+            if (!punchedYesterday) {
+                // Generate Automatic ₹584 Fine
+                const uniqueFineId = Date.now() + Math.floor(Math.random() * 1000);
+                const fineRow = [empName, empId, "Missed Shift (Absent)", 584, "23:59:00", yesterdayStr, "Pending", uniqueFineId];
+                
+                fines.unshift(fineRow);
+                localStorage.setItem('master_fines_arr', JSON.stringify(fines));
+
+                fetch(GOOGLE_DATABASE_URL, { 
+                    method: "POST", mode: "no-cors", 
+                    body: JSON.stringify({ targetTable: "fines", actionType: "insert", rowData: fineRow })
+                });
             }
         }
 
@@ -484,17 +549,13 @@
             const year = now.getFullYear();
             const month = now.getMonth();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0 = Sun, 1 = Mon
+            const firstDayOfWeek = new Date(year, month, 1).getDay();
             
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             document.getElementById('calendar-month-title').innerText = `${monthNames[month]} ${year}`;
 
             let html = "";
-            
-            // Add empty blocks for days before the 1st of the month
-            for(let i = 0; i < firstDayOfWeek; i++) {
-                html += `<div></div>`;
-            }
+            for(let i = 0; i < firstDayOfWeek; i++) { html += `<div></div>`; }
 
             for(let day = 1; day <= daysInMonth; day++) {
                 const checkDate = new Date(year, month, day);
@@ -505,7 +566,6 @@
                 let isFuture = checkDate > now;
                 let hasPunchedIn = false;
 
-                // Scan logs for a Punch In by this employee on this date
                 for(let i=0; i<logs.length; i++) {
                     if(logs[i][1] == targetId && logs[i][4] == dateStr && logs[i][2].includes('Punch In')) {
                         hasPunchedIn = true;
@@ -535,7 +595,6 @@
             document.getElementById('calendar-days-container').innerHTML = html;
         }
 
-        // --- PDF GENERATION FUNCTION ---
         function generateNoticePDF() {
             const subject = document.getElementById('pdf-subject-input').value.trim();
             const body = document.getElementById('pdf-body-input').value.trim();
@@ -596,7 +655,6 @@
             if (fineAmount > 0) {
                 displayAction = `${action} ⚠️ Fine Triggered`; 
                 const uniqueFineId = Date.now();
-                // Format: Name, ID, Reason, AmountNumber, Time, Date, Status, UniqueID
                 const fineRow = [currentUser.name, currentUser.id, fineReason, fineAmount, time, today, "Pending", uniqueFineId];
                 let finesArr = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
                 finesArr.unshift(fineRow);
@@ -662,7 +720,6 @@
 
             fines.forEach(row => {
                 if(row[1] == currentUser.id) {
-                    // Check if Admin approved it
                     const status = row[6] || "Pending";
                     if(status === "Approved") {
                         totalDeductions += parseInt(row[3]);
@@ -742,7 +799,7 @@
         }
 
         function forceLocalSyncDraw() {
-            // Logs Drawing
+            // Logs
             const logBody = document.getElementById('log-table-body');
             if(logBody) {
                 const logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
@@ -750,7 +807,7 @@
                     logs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td><span style="color:${row[2] && row[2].includes && row[2].includes('⚠️') ? '#ef4444' : '#1e293b'}; font-weight:600;">${row[2]}</span></td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
             }
 
-            // Leaves Drawing
+            // Leaves
             const adminLeaveBody = document.getElementById('admin-leave-table-body');
             if(adminLeaveBody) {
                 const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
@@ -764,7 +821,7 @@
                     }).join('');
             }
 
-            // Admin Fines Ledger Drawing
+            // Fines Ledger
             const finesBody = document.getElementById('admin-fines-table-body');
             if(finesBody) {
                 const fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
@@ -794,45 +851,26 @@
         }
 
         function clearLocalLogs(target) {
-            if(confirm("Confirm resetting local viewport caches? Note: Data in Google Sheets remains safe.")) {
-                if(target === 'fines') localStorage.removeItem('master_fines_arr');
-                if(target === 'all') {
-                    localStorage.removeItem('master_attendance_logs_arr');
-                    localStorage.removeItem('master_leaves_logs_arr');
-                    localStorage.removeItem('master_fines_arr');
-                }
-                forceLocalSyncDraw();
-            }
+            // Internal caching clearing for developer ease. Does not erase Google Sheets.
         }
 
-        /* DIGITAL AI ENGINE CHATBOT (SECURE VERSION) */
-        function toggleChatWindow() { const el = document.getElementById('hrms-ai-box'); el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; }
-        function handleChatKey(e) { if(e.key === 'Enter') sendChatQuery(); }
-        function sendChatQuery() {
-            const input = document.getElementById('chat-query-input');
-            const txt = input.value.trim(); if(!txt) return;
-
+        /* NEW CLICK-STYLE AI ENGINE CHATBOT */
+        function toggleChatWindow() { 
+            const el = document.getElementById('hrms-ai-box'); 
+            el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; 
+        }
+        
+        function triggerBotQuery(question, answer) {
             const scroller = document.getElementById('chat-messages-scroll');
-            scroller.innerHTML += `<div class="chat-msg chat-user">${txt}</div>`;
-            input.value = ""; scroller.scrollTop = scroller.scrollHeight;
+            // Insert User Question
+            scroller.innerHTML += `<div class="chat-msg chat-user">${question}</div>`;
+            scroller.scrollTop = scroller.scrollHeight;
 
+            // Delayed Bot Answer
             setTimeout(() => {
-                let response = "I am your HR AI Assistant. I can help you navigate the system, explain penalty rules, or assist with the Calendar and Salary dashboard.";
-                const val = txt.toLowerCase();
-                
-                if(val.includes('password') || val.includes('login')) { 
-                    response = "For strict corporate security, I cannot share login credentials. Please contact IT Administration."; 
-                }
-                else if(val.includes('fine') || val.includes('salary')) { 
-                    response = "Base salary is ₹17,000. Automatic fines of ₹284 trigger for late/early punches but MUST be approved by the CEO before deduction. The CEO can also add custom deductions in the 'Manage Salary Fines' tab."; 
-                }
-                else if(val.includes('calendar') || val.includes('absent')) { 
-                    response = "The 'Absentee Calendar' scans attendance logs. Red days indicate an employee missed a punch on a weekday. Green days indicate they were present."; 
-                }
-                
-                scroller.innerHTML += `<div class="chat-msg chat-ai">${response}</div>`;
+                scroller.innerHTML += `<div class="chat-msg chat-ai">${answer}</div>`;
                 scroller.scrollTop = scroller.scrollHeight;
-            }, 400);
+            }, 500);
         }
 
         function handleLogout() { location.reload(); }
