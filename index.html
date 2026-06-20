@@ -32,10 +32,10 @@
         .notification-container { position: relative; cursor: pointer; }
         .bell-icon { font-size: 20px; position: relative; }
         .bell-badge { position: absolute; top: -5px; right: -5px; background-color: #ef4444; color: white; font-size: 10px; font-weight: bold; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; }
-        .notification-dropdown { display: none; position: absolute; top: 60px; right: 32px; width: 320px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 1000; padding: 12px; }
+        .notification-dropdown { display: none; position: absolute; top: 60px; right: 32px; width: 340px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 1000; padding: 12px; }
         .notification-dropdown h4 { font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; color: #0f172a; }
-        .notification-list { list-style: none; max-height: 200px; overflow-y: auto; font-size: 12px; color: #475569; }
-        .notification-item { padding: 8px; border-bottom: 1px solid #f8fafc; line-height: 1.4; }
+        .notification-list { list-style: none; max-height: 300px; overflow-y: auto; font-size: 12px; color: #475569; display: flex; flex-direction: column; gap: 6px; }
+        .notification-item { padding: 8px; border-bottom: 1px solid #f8fafc; line-height: 1.4; border-radius: 4px; background: #f8fafc;}
 
         .workspace-panel { padding: 32px; flex: 1; overflow-y: auto; }
         .tab-content { display: none; }
@@ -79,6 +79,7 @@
         .cal-absent { background-color: #fee2e2; color: #dc2626; border-color: #f87171; }
         .cal-future { background-color: #f8fafc; color: #cbd5e1; }
         .cal-weekend { background-color: #fef3c7; color: #d97706; border-color: #fbbf24; }
+        .cal-halfday { background-color: #e0e7ff; color: #1d4ed8; border-color: #93c5fd; }
         .cal-status-text { font-size: 10px; margin-top: 4px; text-transform: uppercase; }
 
         /* SALARY DASHBOARD STYLES */
@@ -139,9 +140,10 @@
                 <li class="sidebar-item" id="nav-emp-salary" style="display: none;" onclick="switchTab('tab-emp-salary')">💰 My Salary & Fines</li>
                 
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
+                <li class="sidebar-item" id="nav-admin-broadcast" style="display: none;" onclick="switchTab('tab-admin-broadcast')">🔔 Broadcasts & Shifts</li>
                 <li class="sidebar-item" id="nav-admin-calendar" style="display: none;" onclick="switchTab('tab-admin-calendar')">📅 Absentee Calendar</li>
-                <li class="sidebar-item" id="nav-admin-fines" style="display: none;" onclick="switchTab('tab-admin-fines')">⚖️ Manage Salary Fines</li>
-                <li class="sidebar-item" id="nav-admin-notice" style="display: none;" onclick="switchTab('tab-admin-notice')">📢 Broadcast Notice</li>
+                <li class="sidebar-item" id="nav-admin-fines" style="display: none;" onclick="switchTab('tab-admin-fines')">⚖️ Manage Fines</li>
+                <li class="sidebar-item" id="nav-admin-notice" style="display: none;" onclick="switchTab('tab-admin-notice')">📢 Broadcast Notice PDF</li>
                 <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Shift Logs</li>
                 <li class="sidebar-item" id="nav-admin-leaves" style="display: none;" onclick="switchTab('tab-admin-leaves')">📥 Review Leave Apps</li>
             </ul>
@@ -174,7 +176,7 @@
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
                         <p>Current Status: <strong id="punch-status-text" style="color: #64748b;">Ready to Log</strong></p>
-                        <p style="font-size: 12px; color: #ef4444; margin-top: 8px;">*Warning: Late arrivals (>1:00 PM) or early departures (<8:00 PM) incur a ₹284 fine. Missing a full weekday incurs a ₹584 fine.</p>
+                        <p style="font-size: 12px; color: #ef4444; margin-top: 8px;">*Warning: Late arrivals (>1:00 PM) or early departures (<8:00 PM) incur a ₹284 fine. Missing a full workday incurs a ₹584 fine. Saturdays are Mandatory Working Days.</p>
                         <div style="display: flex; gap: 15px; margin-top: 15px;">
                             <button id="btn-punch-in" onclick="recordAttendance('Punch In')">Punch In</button>
                             <button id="btn-punch-out" class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
@@ -207,7 +209,6 @@
                 <div id="tab-emp-salary" class="tab-content">
                     <div class="card card-full">
                         <h2>💰 My Monthly Salary Overview</h2>
-                        
                         <div class="salary-box">
                             <div class="salary-item">
                                 <div class="salary-label">Base Salary</div>
@@ -222,7 +223,6 @@
                                 <div class="salary-net" id="emp-net-salary">₹17,000</div>
                             </div>
                         </div>
-
                         <h3>Penalty & Fine History</h3>
                         <p style="font-size: 13px; color: #64748b;">Only 'Approved' fines are deducted from your base salary.</p>
                         <div class="table-container">
@@ -242,10 +242,38 @@
                     </div>
                 </div>
 
+                <div id="tab-admin-broadcast" class="tab-content">
+                    <div class="card card-full">
+                        <h2>🔔 Cloud Broadcasts & Shift Notifications</h2>
+                        <p>Announce special working days (like a Sunday Half-Day) or send a general alert. These sync instantly to all employees and rewire their calendars via the cloud.</p>
+                        <form onsubmit="sendShiftNotice(event)">
+                            <label>Target Date</label>
+                            <input type="date" id="notice-date" required>
+                            <label>Notification Category</label>
+                            <select id="notice-type">
+                                <option value="Half-Day (Sunday)">Sunday Half-Day Working</option>
+                                <option value="Mandatory Working">Mandatory Full Day</option>
+                                <option value="General Announcement">General Announcement</option>
+                            </select>
+                            <label>Message to Employees</label>
+                            <input type="text" id="notice-message" placeholder="e.g., Office open 10 AM to 2 PM this Sunday" required>
+                            <button type="submit" style="background-color: #3b82f6;">Push Broadcast to Cloud</button>
+                        </form>
+                        
+                        <h3 style="margin-top: 30px; font-size: 16px;">Cloud Broadcast History</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Notice Category</th><th>Message Broadcasted</th><th>Target Date</th><th>Time Pushed</th></tr></thead>
+                                <tbody id="admin-broadcast-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="tab-admin-calendar" class="tab-content">
                     <div class="card card-full">
                         <h2>📅 Employee Absentee Tracker</h2>
-                        <p>Select an employee to view their attendance record for the current month. Red indicates a missed punch on a working day.</p>
+                        <p>Select an employee to view their attendance record. Red indicates a missed punch on a regular working day (Monday-Saturday) or a declared Special Sunday.</p>
                         
                         <label>Select Target Employee:</label>
                         <select id="calendar-emp-select" onchange="renderCalendar()">
@@ -300,7 +328,7 @@
                         <h2>📢 Broadcast Official Notice (PDF)</h2>
                         <p>Draft an official company notice. Clicking "Generate PDF" will automatically format it onto a corporate letterhead.</p>
                         <label>Notice Subject / Title</label>
-                        <input type="text" id="pdf-subject-input" placeholder="e.g. Mandatory Policy Update Regarding Weekend Shifts" required>
+                        <input type="text" id="pdf-subject-input" placeholder="e.g. Policy Update" required>
                         <label>Official Notice Content</label>
                         <textarea id="pdf-body-input" rows="6" placeholder="Type the body of the notice here..." required></textarea>
                         <button class="btn-pdf" onclick="generateNoticePDF()">📄 Generate & Download Official PDF Notice</button>
@@ -362,18 +390,16 @@
                 <div class="chat-msg chat-ai">Greetings! I am your AI assistant. Click an option below to learn about the system rules.</div>
             </div>
             <div class="chat-options">
-                <button class="chat-chip" onclick="triggerBotQuery('What are the Penalty and Fine Rules?', 'Late arrival (>1:00 PM) or early departure (<8:00 PM) is a ₹284 fine. Missing a full weekday triggers a ₹584 fine automatically. All fines require Admin approval.')">❓ What are the Penalty and Fine Rules?</button>
+                <button class="chat-chip" onclick="triggerBotQuery('What are the working days?', 'Monday through Saturday are mandatory working days. Sundays are regular holidays unless the Admin broadcasts a special Sunday Half-Day notice.')">🗓️ What are the working days?</button>
+                <button class="chat-chip" onclick="triggerBotQuery('What are the Penalty and Fine Rules?', 'Late arrival (>1:00 PM) or early departure (<8:00 PM) is a ₹284 fine. Missing a full workday (including Saturdays) triggers a ₹584 fine automatically.')">❓ What are the Penalty and Fine Rules?</button>
                 <button class="chat-chip" onclick="triggerBotQuery('How is my Salary calculated?', 'Base salary is ₹17,000. Any fine that is explicitly Approved by the CEO in the cloud is deducted from this total to calculate your Net Payable salary.')">💰 How is my Salary calculated?</button>
-                <button class="chat-chip" onclick="triggerBotQuery('How do I generate an official Notice?', 'If you are an Admin, navigate to the Broadcast Notice tab. Enter the details and click Generate to download a formatted PDF letterhead instantly.')">📄 How do I generate an official Notice?</button>
-                <button class="chat-chip" onclick="triggerBotQuery('How does the Absentee Calendar work?', 'The calendar automatically scans attendance logs. If an employee did not punch in on a weekday, the day turns Red. Weekends remain Yellow.')">📅 How does the Absentee Calendar work?</button>
-                <button class="chat-chip" onclick="triggerBotQuery('I forgot my login password.', 'For strict corporate security, passwords are never shared in this chat. If you have lost your access keys, please contact IT Administration.')">🔒 I forgot my login password.</button>
+                <button class="chat-chip" onclick="triggerBotQuery('How does the Absentee Calendar work?', 'The calendar automatically scans attendance. If you do not punch in on a Mon-Sat, the day turns Red. Sundays are Yellow unless marked as a special Working Day by the Admin (Blue).')">📅 How does the Absentee Calendar work?</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- YOUR BRAND NEW DATABASE URL IS HERE ---
-        const GOOGLE_DATABASE_URL = "https://script.google.com/macros/s/AKfycbw98WPtXXGI0sU7H0YLNBjBvKEble-CTODR05ossdMzjRU0-tjFy7kukkXuwvN8ICYtpw/exec";
+        const GOOGLE_DATABASE_URL = "https://script.google.com/macros/s/AKfycbzg1nflTJmR4fnMI5n-o0NfHe0B9tZM2ntL3bxjUDl6FMQhRrwk3NEIyf7Dq_LSXDmOYQ/exec";
         const BASE_SALARY = 17000;
         let currentUser = null;
 
@@ -421,6 +447,7 @@
                 document.getElementById('employee-notification-bell').style.display = 'none';
 
                 document.getElementById('nav-admin-dashboard').style.display = 'block';
+                document.getElementById('nav-admin-broadcast').style.display = 'block';
                 document.getElementById('nav-admin-calendar').style.display = 'block';
                 document.getElementById('nav-admin-fines').style.display = 'block';
                 document.getElementById('nav-admin-notice').style.display = 'block';
@@ -430,6 +457,7 @@
                 switchTab('tab-admin-dashboard');
             } else {
                 document.getElementById('nav-admin-dashboard').style.display = 'none';
+                document.getElementById('nav-admin-broadcast').style.display = 'none';
                 document.getElementById('nav-admin-calendar').style.display = 'none';
                 document.getElementById('nav-admin-fines').style.display = 'none';
                 document.getElementById('nav-admin-notice').style.display = 'none';
@@ -458,6 +486,7 @@
                 if(data.logs) localStorage.setItem('master_attendance_logs_arr', JSON.stringify(data.logs));
                 if(data.leaves) localStorage.setItem('master_leaves_logs_arr', JSON.stringify(data.leaves));
                 if(data.fines) localStorage.setItem('master_fines_arr', JSON.stringify(data.fines));
+                if(data.notifications) localStorage.setItem('master_notifications_arr', JSON.stringify(data.notifications));
 
                 checkAbsenteeFines(); 
 
@@ -478,6 +507,32 @@
             }
         }
 
+        // ================= SPECIAL SHIFT BROADCAST (CLOUD ADMIN) =================
+        function sendShiftNotice(e) {
+            e.preventDefault();
+            const dateInput = document.getElementById('notice-date').value;
+            if(!dateInput) return;
+            const dateVal = new Date(dateInput + "T00:00:00").toLocaleDateString('en-US'); 
+            const typeVal = document.getElementById('notice-type').value;
+            const msgVal = document.getElementById('notice-message').value;
+            const uniqueId = Date.now();
+
+            const rowData = [typeVal, msgVal, dateVal, new Date().toLocaleTimeString('en-US'), uniqueId];
+            
+            let notices = JSON.parse(localStorage.getItem('master_notifications_arr') || "[]");
+            notices.unshift(rowData);
+            localStorage.setItem('master_notifications_arr', JSON.stringify(notices));
+
+            fetch(GOOGLE_DATABASE_URL, { 
+                method: "POST", headers: {"Content-Type": "text/plain"}, 
+                body: JSON.stringify({ targetTable: "notifications", actionType: "insert", rowData: rowData })
+            });
+
+            alert(`Notice for ${dateVal} pushed successfully to the Cloud!`);
+            e.target.reset();
+            forceLocalSyncDraw();
+        }
+
         // ================= AUTOMATED ABSENTEE FINE ENGINE =================
         function checkAbsenteeFines() {
             const empId = "1001";
@@ -488,7 +543,12 @@
             const yesterdayStr = yesterday.toLocaleDateString('en-US'); 
             const dayOfWeek = yesterday.getDay();
 
-            if (dayOfWeek === 0 || dayOfWeek === 6) return;
+            // Check if Sunday. If Sunday, was it declared a Special Working Day in the new Cloud table?
+            if (dayOfWeek === 0) {
+                let notices = JSON.parse(localStorage.getItem('master_notifications_arr') || "[]");
+                let wasSpecialDay = notices.some(n => (n[0].includes("Half-Day") || n[0].includes("Mandatory")) && n[2] === yesterdayStr);
+                if(!wasSpecialDay) return; // Skip normal Sundays
+            }
 
             let fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
             let alreadyFined = fines.some(f => f[1] === empId && f[5] === yesterdayStr && f[2] === "Missed Shift (Absent)");
@@ -515,6 +575,7 @@
         function renderCalendar() {
             const targetId = document.getElementById('calendar-emp-select').value;
             const logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
+            const notices = JSON.parse(localStorage.getItem('master_notifications_arr') || "[]");
             
             const now = new Date();
             const year = now.getFullYear();
@@ -533,28 +594,46 @@
                 const dateStr = checkDate.toLocaleDateString('en-US'); 
                 const dayOfWeek = checkDate.getDay();
                 
-                let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                // SATURDAY IS NOT A WEEKEND
+                let isWeekend = (dayOfWeek === 0); 
                 let isFuture = checkDate > now;
                 let hasPunchedIn = false;
+                let isSpecialWorkingDay = false;
+                let specialMsg = "";
 
+                // Check Cloud Punches
                 for(let i=0; i<logs.length; i++) {
                     if(logs[i][1] == targetId && logs[i][4] == dateStr && logs[i][2].includes('Punch In')) {
                         hasPunchedIn = true;
                         break;
                     }
                 }
+                
+                // Check Cloud Notifications
+                for(let i=0; i<notices.length; i++) {
+                    if ((notices[i][0].includes("Half-Day") || notices[i][0].includes("Mandatory")) && notices[i][2] === dateStr) {
+                        isSpecialWorkingDay = true;
+                        specialMsg = notices[i][0].includes("Half") ? "Half Day" : "Working Day";
+                        break;
+                    }
+                }
+
+                if(isSpecialWorkingDay) isWeekend = false;
 
                 let boxClass = "cal-day";
                 let statusText = "";
 
                 if(isFuture) {
                     boxClass += " cal-future";
-                } else if(isWeekend) {
-                    boxClass += " cal-weekend";
-                    statusText = "Weekend";
+                    if(isSpecialWorkingDay) { boxClass += " cal-halfday"; statusText = specialMsg; }
+                    else if(isWeekend) { boxClass += " cal-weekend"; statusText = "Weekend"; }
                 } else if(hasPunchedIn) {
                     boxClass += " cal-present";
                     statusText = "Present";
+                    if(isSpecialWorkingDay) statusText += " ("+specialMsg+")";
+                } else if(isWeekend) {
+                    boxClass += " cal-weekend";
+                    statusText = "Weekend";
                 } else {
                     boxClass += " cal-absent";
                     statusText = "Missing Log";
@@ -772,6 +851,8 @@
 
         function evalNotificationsEngine() {
             const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
+            const notices = JSON.parse(localStorage.getItem('master_notifications_arr') || "[]");
+            
             const alertContainer = document.getElementById('notification-list-container');
             const badge = document.getElementById('bell-badge-count');
             
@@ -788,6 +869,14 @@
                         </li>`;
                     }
                 }
+            });
+
+            notices.forEach(row => {
+                newNotificationsCount++;
+                let borderColor = row[0].includes("General") ? "#cbd5e1" : "#3b82f6";
+                alertItemsHTML += `<li class="notification-item" style="border-left:3px solid ${borderColor}; padding-left:5px;">
+                    <strong>📢 ${row[0]}</strong><br>${row[1]}<br><small style="color:#94a3b8;">Target Date: ${row[2]}</small>
+                </li>`;
             });
 
             if(newNotificationsCount > 0) {
@@ -832,6 +921,15 @@
                             <button class="btn-action btn-reject" onclick="processFineDecision(${row[7]}, 'Rejected')">❌ Reject</button>` : 
                             `<span class="badge status-${status}">${status}</span>`;
                         return `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td style="color:#ef4444; font-weight:bold;">₹${row[3]}</td><td>${actionsUi}</td></tr>`;
+                    }).join('');
+            }
+
+            const noticesBody = document.getElementById('admin-broadcast-table-body');
+            if(noticesBody) {
+                const notices = JSON.parse(localStorage.getItem('master_notifications_arr') || "[]");
+                noticesBody.innerHTML = notices.length === 0 ? `<tr><td colspan="4" style="text-align:center;">No cloud broadcasts active.</td></tr>` :
+                    notices.map(row => {
+                        return `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td></tr>`;
                     }).join('');
             }
 
