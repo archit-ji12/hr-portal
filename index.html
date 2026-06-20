@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise HRMS Portal</title>
-    <!-- External Library for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* Modern Corporate Interface Design Tokens */
@@ -118,7 +117,6 @@
 </head>
 <body>
 
-    <!-- 1. AUTH WINDOW (SECURE) -->
     <div id="login-wrapper" class="login-wrapper">
         <div class="login-container">
             <h2>HR Portal Authentication</h2>
@@ -132,17 +130,14 @@
         </div>
     </div>
 
-    <!-- 2. SYSTEM LAYOUT FRAMEWORK -->
     <div id="app-layout" class="app-layout">
         <nav class="sidebar">
             <div class="sidebar-brand">Corporate HRMS</div>
             <ul class="sidebar-menu">
-                <!-- Employee Tabs (Hidden from Admins) -->
                 <li class="sidebar-item" id="nav-attendance" style="display: none;" onclick="switchTab('tab-attendance')">⏱️ Daily Attendance</li>
                 <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave Form</li>
                 <li class="sidebar-item" id="nav-emp-salary" style="display: none;" onclick="switchTab('tab-emp-salary')">💰 My Salary & Fines</li>
                 
-                <!-- Admin Tabs (Hidden from Employees) -->
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
                 <li class="sidebar-item" id="nav-admin-calendar" style="display: none;" onclick="switchTab('tab-admin-calendar')">📅 Absentee Calendar</li>
                 <li class="sidebar-item" id="nav-admin-fines" style="display: none;" onclick="switchTab('tab-admin-fines')">⚖️ Manage Salary Fines</li>
@@ -175,9 +170,6 @@
             </header>
 
             <div class="workspace-panel">
-                <!-- ================= EMPLOYEE VIEWS ================= -->
-                
-                <!-- TAB 1: ATTENDANCE -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
@@ -190,7 +182,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 2: EMPLOYEE LEAVES -->
                 <div id="tab-leave-apply" class="tab-content">
                     <div class="card">
                         <h2>File Leave Application</h2>
@@ -213,7 +204,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: EMPLOYEE SALARY -->
                 <div id="tab-emp-salary" class="tab-content">
                     <div class="card card-full">
                         <h2>💰 My Monthly Salary Overview</h2>
@@ -244,18 +234,14 @@
                     </div>
                 </div>
 
-                <!-- ================= ADMIN VIEWS ================= -->
-
-                <!-- TAB 4: ADMIN DASHBOARD -->
                 <div id="tab-admin-dashboard" class="tab-content">
                     <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
                         <h2>Executive Management Workspace</h2>
-                        <p>Welcome back, Sir. Click the button below to fetch live logs, punches, and fines straight from Google Sheets across all devices.</p>
-                        <button id="sync-btn" style="background: #2563eb; width: auto; padding: 10px 24px;" onclick="syncDatabaseGlobal()">🔄 Quick Force Sync Refresh</button>
+                        <p>Welcome back, Sir. Click the button below to force download all cross-device data directly from Google Sheets.</p>
+                        <button id="sync-btn" style="background: #2563eb; width: auto; padding: 10px 24px;" onclick="syncDatabaseGlobal()">🔄 Force Sync All Devices</button>
                     </div>
                 </div>
 
-                <!-- TAB 5: ABSENTEE CALENDAR -->
                 <div id="tab-admin-calendar" class="tab-content">
                     <div class="card card-full">
                         <h2>📅 Employee Absentee Tracker</h2>
@@ -276,11 +262,10 @@
                     </div>
                 </div>
 
-                <!-- TAB 6: ADMIN FINES (CLOUD COMPUTED) -->
                 <div id="tab-admin-fines" class="tab-content">
                     <div class="card card-full" style="border-left: 5px solid #ef4444;">
                         <h2>⚖️ Manage Salary Fines & Deductions</h2>
-                        <p>Automated fines arrive as "Pending". You must explicitly Approve them to deduct from the ₹17,000 base salary. Custom deductions log as Approved automatically.</p>
+                        <p>Automated fines arrive as "Pending". You must explicitly Approve them to deduct from the ₹17,000 base salary.</p>
                         
                         <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
                             <h3 style="font-size: 15px; margin-bottom: 10px;">➕ Add Custom Cloud Deduction</h3>
@@ -310,7 +295,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 7: PDF NOTICE -->
                 <div id="tab-admin-notice" class="tab-content">
                     <div class="card card-full">
                         <h2>📢 Broadcast Official Notice (PDF)</h2>
@@ -323,7 +307,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 8: SHIFT LOGS -->
                 <div id="tab-admin-logs" class="tab-content">
                     <div class="card card-full">
                         <h2>Master Employee Attendance Logs</h2>
@@ -336,7 +319,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 9: LEAVE APPROVALS -->
                 <div id="tab-admin-leaves" class="tab-content">
                     <div class="card card-full">
                         <h2>Review Pending Staff Leave Board</h2>
@@ -353,7 +335,6 @@
         </div>
     </div>
 
-    <!-- HIDDEN PDF GENERATION TEMPLATE -->
     <div id="pdf-export-container">
         <div class="letterhead" id="print-letterhead">
             <div class="lh-header">
@@ -373,7 +354,6 @@
         </div>
     </div>
 
-    <!-- AI AGENT CHAT MODULE (CLICK SYSTEM) -->
     <div class="chat-widget">
         <button class="chat-toggle" onclick="toggleChatWindow()">🤖</button>
         <div class="chat-box" id="hrms-ai-box">
@@ -392,7 +372,8 @@
     </div>
 
     <script>
-        const GOOGLE_DATABASE_URL = "https://script.google.com/macros/s/AKfycbxfYf68GQzMCFXeTHjE4c8A6wwDBKU2_DQCDDvr_WR9q58axF3UmwtFKTCahtEnBEtv/exec";
+        // --- YOUR BRAND NEW DATABASE URL IS HERE ---
+        const GOOGLE_DATABASE_URL = "https://script.google.com/macros/s/AKfycbw98WPtXXGI0sU7H0YLNBjBvKEble-CTODR05ossdMzjRU0-tjFy7kukkXuwvN8ICYtpw/exec";
         const BASE_SALARY = 17000;
         let currentUser = null;
 
@@ -447,7 +428,6 @@
                 document.getElementById('nav-admin-leaves').style.display = 'block';
                 
                 switchTab('tab-admin-dashboard');
-                syncDatabaseGlobal(); 
             } else {
                 document.getElementById('nav-admin-dashboard').style.display = 'none';
                 document.getElementById('nav-admin-calendar').style.display = 'none';
@@ -462,24 +442,22 @@
                 document.getElementById('employee-notification-bell').style.display = 'block';
                 
                 switchTab('tab-attendance');
-                checkPunches();
-                syncDatabaseGlobal(); 
             }
+            syncDatabaseGlobal(); 
         }
 
-        // ================= GLOBAL CLOUD SYNC (WITH CACHE-BUSTER) =================
+        // ================= GLOBAL CLOUD SYNC =================
         async function syncDatabaseGlobal() {
             try {
                 const syncBtn = document.getElementById('sync-btn');
                 if(syncBtn) syncBtn.innerText = "⏳ Downloading Cloud Data...";
 
-                // Adding a timestamp prevents the browser from loading cached, old data!
                 let response = await fetch(GOOGLE_DATABASE_URL + "?nocache=" + new Date().getTime());
                 let data = await response.json();
                 
-                if(data.logs && data.logs.length > 0) localStorage.setItem('master_attendance_logs_arr', JSON.stringify(data.logs));
-                if(data.leaves && data.leaves.length > 0) localStorage.setItem('master_leaves_logs_arr', JSON.stringify(data.leaves));
-                if(data.fines && data.fines.length > 0) localStorage.setItem('master_fines_arr', JSON.stringify(data.fines));
+                if(data.logs) localStorage.setItem('master_attendance_logs_arr', JSON.stringify(data.logs));
+                if(data.leaves) localStorage.setItem('master_leaves_logs_arr', JSON.stringify(data.leaves));
+                if(data.fines) localStorage.setItem('master_fines_arr', JSON.stringify(data.fines));
 
                 checkAbsenteeFines(); 
 
@@ -487,14 +465,16 @@
                 if(currentUser && currentUser.role === 'employee') {
                     evalNotificationsEngine();
                     renderEmployeeSalary();
+                    checkPunches(); 
                 }
                 
-                if(syncBtn) syncBtn.innerText = "🔄 Quick Force Sync Refresh";
+                if(syncBtn) syncBtn.innerText = "🔄 Force Sync All Devices";
             } catch (err) {
-                console.log("Cloud sync delayed. Using local cache.");
-                if(document.getElementById('sync-btn')) document.getElementById('sync-btn').innerText = "🔄 Quick Force Sync Refresh";
+                console.log("Cloud sync error.");
+                if(document.getElementById('sync-btn')) document.getElementById('sync-btn').innerText = "🔄 Force Sync All Devices";
                 checkAbsenteeFines();
                 forceLocalSyncDraw();
+                if(currentUser && currentUser.role === 'employee') checkPunches();
             }
         }
 
@@ -508,7 +488,6 @@
             const yesterdayStr = yesterday.toLocaleDateString('en-US'); 
             const dayOfWeek = yesterday.getDay();
 
-            // Skip weekends (Sunday = 0, Saturday = 6)
             if (dayOfWeek === 0 || dayOfWeek === 6) return;
 
             let fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
@@ -525,15 +504,14 @@
                 fines.unshift(fineRow);
                 localStorage.setItem('master_fines_arr', JSON.stringify(fines));
 
-                // Cloud Push
                 fetch(GOOGLE_DATABASE_URL, { 
-                    method: "POST", mode: "no-cors", 
+                    method: "POST", headers: {"Content-Type": "text/plain"}, 
                     body: JSON.stringify({ targetTable: "fines", actionType: "insert", rowData: fineRow })
                 });
             }
         }
 
-        // ================= CALENDAR LOGIC (STANDARDIZED DATES) =================
+        // ================= CALENDAR LOGIC =================
         function renderCalendar() {
             const targetId = document.getElementById('calendar-emp-select').value;
             const logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
@@ -616,8 +594,16 @@
         function checkPunches() {
             if(currentUser.role !== 'employee') return;
             const today = new Date().toLocaleDateString('en-US'); 
-            const hasIn = localStorage.getItem(`in_${currentUser.id}_${today}`);
-            const hasOut = localStorage.getItem(`out_${currentUser.id}_${today}`);
+            
+            let logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
+            let hasPunchedInCloud = logs.some(l => l[1] === currentUser.id && l[4] === today && l[2].includes('Punch In'));
+            let hasPunchedOutCloud = logs.some(l => l[1] === currentUser.id && l[4] === today && l[2].includes('Punch Out'));
+
+            const hasInLocal = localStorage.getItem(`in_${currentUser.id}_${today}`);
+            const hasOutLocal = localStorage.getItem(`out_${currentUser.id}_${today}`);
+            
+            const hasIn = hasPunchedInCloud || hasInLocal;
+            const hasOut = hasPunchedOutCloud || hasOutLocal;
             
             const txt = document.getElementById('punch-status-text');
             if(hasOut) {
@@ -654,7 +640,10 @@
                 finesArr.unshift(fineRow);
                 localStorage.setItem('master_fines_arr', JSON.stringify(finesArr));
 
-                fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "fines", actionType: "insert", rowData: fineRow }) });
+                fetch(GOOGLE_DATABASE_URL, { 
+                    method: "POST", headers: {"Content-Type": "text/plain"}, 
+                    body: JSON.stringify({ targetTable: "fines", actionType: "insert", rowData: fineRow }) 
+                });
                 alert(`⚠️ Warning: ${fineReason}. A deduction of ₹${fineAmount} has been logged for Admin review.`);
             } else {
                 alert(`${action} Captured Successfully!`);
@@ -664,16 +653,20 @@
             if(action === 'Punch In') localStorage.setItem(`in_${currentUser.id}_${today}`, "true");
             if(action === 'Punch Out') localStorage.setItem(`out_${currentUser.id}_${today}`, "true");
             
-            checkPunches();
             let logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
             logs.unshift(rowData);
             localStorage.setItem('master_attendance_logs_arr', JSON.stringify(logs));
+            
+            checkPunches();
 
-            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "logs", actionType: "insert", rowData: rowData })});
+            fetch(GOOGLE_DATABASE_URL, { 
+                method: "POST", headers: {"Content-Type": "text/plain"}, 
+                body: JSON.stringify({ targetTable: "logs", actionType: "insert", rowData: rowData })
+            });
             forceLocalSyncDraw();
         }
 
-        // ================= FINES & SALARY ENGINE (CLOUD SECURED) =================
+        // ================= FINES & SALARY ENGINE =================
         function addCustomFine(e) {
             e.preventDefault();
             const empId = document.getElementById('custom-fine-emp').value;
@@ -687,8 +680,10 @@
             finesArr.unshift(fineRow);
             localStorage.setItem('master_fines_arr', JSON.stringify(finesArr));
 
-            // Cloud Push Insert
-            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "fines", actionType: "insert", rowData: fineRow }) });
+            fetch(GOOGLE_DATABASE_URL, { 
+                method: "POST", headers: {"Content-Type": "text/plain"}, 
+                body: JSON.stringify({ targetTable: "fines", actionType: "insert", rowData: fineRow }) 
+            });
             
             alert(`Custom deduction of ₹${amount} pushed to Cloud successfully!`);
             e.target.reset();
@@ -705,9 +700,8 @@
             }
             localStorage.setItem('master_fines_arr', JSON.stringify(fines));
             
-            // Cloud Push Update (Ensures Employees see it instantly on next load)
             fetch(GOOGLE_DATABASE_URL, { 
-                method: "POST", mode: "no-cors", 
+                method: "POST", headers: {"Content-Type": "text/plain"}, 
                 body: JSON.stringify({ targetTable: "fines", actionType: "updateFine", id: uniqueId, status: finalStatus }) 
             });
 
@@ -749,7 +743,10 @@
             leaves.unshift(rowData);
             localStorage.setItem('master_leaves_logs_arr', JSON.stringify(leaves));
 
-            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "leaves", actionType: "insert", rowData: rowData })});
+            fetch(GOOGLE_DATABASE_URL, { 
+                method: "POST", headers: {"Content-Type": "text/plain"}, 
+                body: JSON.stringify({ targetTable: "leaves", actionType: "insert", rowData: rowData })
+            });
             alert("Leave application sent straight to executive review dashboard!");
             e.target.reset();
             forceLocalSyncDraw();
@@ -767,8 +764,10 @@
             localStorage.setItem('master_leaves_logs_arr', JSON.stringify(leaves));
             forceLocalSyncDraw();
             
-            // Cloud Push Update Leave
-            fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "leaves", actionType: "updateLeave", id: uniqueId, status: finalStatus }) });
+            fetch(GOOGLE_DATABASE_URL, { 
+                method: "POST", headers: {"Content-Type": "text/plain"}, 
+                body: JSON.stringify({ targetTable: "leaves", actionType: "updateLeave", id: uniqueId, status: finalStatus }) 
+            });
         }
 
         function evalNotificationsEngine() {
