@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise HRMS Portal</title>
+    <!-- External Library for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* Modern Corporate Interface Design Tokens */
@@ -118,6 +119,7 @@
 </head>
 <body>
 
+    <!-- 1. AUTH WINDOW (SECURE) -->
     <div id="login-wrapper" class="login-wrapper">
         <div class="login-container">
             <h2>HR Portal Authentication</h2>
@@ -131,14 +133,17 @@
         </div>
     </div>
 
+    <!-- 2. SYSTEM LAYOUT FRAMEWORK -->
     <div id="app-layout" class="app-layout">
         <nav class="sidebar">
             <div class="sidebar-brand">Corporate HRMS</div>
             <ul class="sidebar-menu">
+                <!-- Employee Tabs -->
                 <li class="sidebar-item" id="nav-attendance" style="display: none;" onclick="switchTab('tab-attendance')">⏱️ Daily Attendance</li>
                 <li class="sidebar-item" id="nav-leave-apply" style="display: none;" onclick="switchTab('tab-leave-apply')">📅 Apply Leave Form</li>
                 <li class="sidebar-item" id="nav-emp-salary" style="display: none;" onclick="switchTab('tab-emp-salary')">💰 My Salary & Fines</li>
                 
+                <!-- Admin Tabs -->
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
                 <li class="sidebar-item" id="nav-admin-broadcast" style="display: none;" onclick="switchTab('tab-admin-broadcast')">🔔 Broadcasts & Shifts</li>
                 <li class="sidebar-item" id="nav-admin-calendar" style="display: none;" onclick="switchTab('tab-admin-calendar')">📅 Absentee Calendar</li>
@@ -172,6 +177,9 @@
             </header>
 
             <div class="workspace-panel">
+                <!-- ================= EMPLOYEE VIEWS ================= -->
+                
+                <!-- TAB 1: ATTENDANCE -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
@@ -184,6 +192,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 2: EMPLOYEE LEAVES -->
                 <div id="tab-leave-apply" class="tab-content">
                     <div class="card">
                         <h2>File Leave Application</h2>
@@ -206,6 +215,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 3: EMPLOYEE SALARY -->
                 <div id="tab-emp-salary" class="tab-content">
                     <div class="card card-full">
                         <h2>💰 My Monthly Salary Overview</h2>
@@ -234,6 +244,9 @@
                     </div>
                 </div>
 
+                <!-- ================= ADMIN VIEWS ================= -->
+
+                <!-- TAB 4: ADMIN DASHBOARD -->
                 <div id="tab-admin-dashboard" class="tab-content">
                     <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
                         <h2>Executive Management Workspace</h2>
@@ -242,6 +255,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 4.5: ADMIN SHIFT NOTIFICATIONS -->
                 <div id="tab-admin-broadcast" class="tab-content">
                     <div class="card card-full">
                         <h2>🔔 Cloud Broadcasts & Shift Notifications</h2>
@@ -270,6 +284,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 5: ABSENTEE CALENDAR -->
                 <div id="tab-admin-calendar" class="tab-content">
                     <div class="card card-full">
                         <h2>📅 Employee Absentee Tracker</h2>
@@ -290,6 +305,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 6: ADMIN FINES -->
                 <div id="tab-admin-fines" class="tab-content">
                     <div class="card card-full" style="border-left: 5px solid #ef4444;">
                         <h2>⚖️ Manage Salary Fines & Deductions</h2>
@@ -323,6 +339,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 7: PDF NOTICE -->
                 <div id="tab-admin-notice" class="tab-content">
                     <div class="card card-full">
                         <h2>📢 Broadcast Official Notice (PDF)</h2>
@@ -335,6 +352,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 8: SHIFT LOGS -->
                 <div id="tab-admin-logs" class="tab-content">
                     <div class="card card-full">
                         <h2>Master Employee Attendance Logs</h2>
@@ -347,6 +365,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 9: LEAVE APPROVALS -->
                 <div id="tab-admin-leaves" class="tab-content">
                     <div class="card card-full">
                         <h2>Review Pending Staff Leave Board</h2>
@@ -363,6 +382,7 @@
         </div>
     </div>
 
+    <!-- HIDDEN PDF GENERATION TEMPLATE -->
     <div id="pdf-export-container">
         <div class="letterhead" id="print-letterhead">
             <div class="lh-header">
@@ -382,6 +402,7 @@
         </div>
     </div>
 
+    <!-- AI AGENT CHAT MODULE -->
     <div class="chat-widget">
         <button class="chat-toggle" onclick="toggleChatWindow()">🤖</button>
         <div class="chat-box" id="hrms-ai-box">
@@ -406,6 +427,24 @@
         window.addEventListener('DOMContentLoaded', () => {
             setInterval(() => { document.getElementById('live-header-clock').innerText = "🕒 " + new Date().toLocaleTimeString('en-US'); }, 1000);
         });
+
+        // ================= SMART DATE FORMATTER =================
+        // Formats the Cloud Date into "Today", "Yesterday", or "Jun 20, 2026"
+        function getRelativeDateText(dateStr) {
+            if(!dateStr) return "";
+            let d = new Date(dateStr);
+            if(isNaN(d.getTime())) return dateStr;
+
+            let today = new Date();
+            let yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+
+            let dFmt = d.toLocaleDateString('en-US');
+            if (dFmt === today.toLocaleDateString('en-US')) return "Today";
+            if (dFmt === yesterday.toLocaleDateString('en-US')) return "Yesterday";
+            
+            return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -453,7 +492,6 @@
                 document.getElementById('nav-admin-notice').style.display = 'block';
                 document.getElementById('nav-admin-logs').style.display = 'block';
                 document.getElementById('nav-admin-leaves').style.display = 'block';
-                
                 switchTab('tab-admin-dashboard');
             } else {
                 document.getElementById('nav-admin-dashboard').style.display = 'none';
@@ -468,10 +506,25 @@
                 document.getElementById('nav-leave-apply').style.display = 'block';
                 document.getElementById('nav-emp-salary').style.display = 'block';
                 document.getElementById('employee-notification-bell').style.display = 'block';
-                
                 switchTab('tab-attendance');
             }
             syncDatabaseGlobal(); 
+        }
+
+        // ================= CLOUD DATA SCRUBBER =================
+        // Cleans up Google Sheets "Machine Timestamps" into perfect readable dates instantly
+        function cleanCloudData(arr, dateIndex, timeIndex) {
+            return arr.map(row => {
+                if(dateIndex !== null && row[dateIndex]) {
+                    let d = new Date(row[dateIndex]);
+                    if(!isNaN(d.getTime())) row[dateIndex] = d.toLocaleDateString('en-US');
+                }
+                if(timeIndex !== null && row[timeIndex] && typeof row[timeIndex] === 'string' && row[timeIndex].includes('T')) {
+                    let t = new Date(row[timeIndex]);
+                    if(!isNaN(t.getTime())) row[timeIndex] = t.toLocaleTimeString('en-US');
+                }
+                return row;
+            });
         }
 
         // ================= GLOBAL CLOUD SYNC =================
@@ -483,10 +536,11 @@
                 let response = await fetch(GOOGLE_DATABASE_URL + "?nocache=" + new Date().getTime());
                 let data = await response.json();
                 
-                if(data.logs) localStorage.setItem('master_attendance_logs_arr', JSON.stringify(data.logs));
-                if(data.leaves) localStorage.setItem('master_leaves_logs_arr', JSON.stringify(data.leaves));
-                if(data.fines) localStorage.setItem('master_fines_arr', JSON.stringify(data.fines));
-                if(data.notifications) localStorage.setItem('master_notifications_arr', JSON.stringify(data.notifications));
+                // Save and scrub the data instantly
+                if(data.logs) localStorage.setItem('master_attendance_logs_arr', JSON.stringify(cleanCloudData(data.logs, 4, 3)));
+                if(data.leaves) localStorage.setItem('master_leaves_logs_arr', JSON.stringify(cleanCloudData(data.leaves, null, 3)));
+                if(data.fines) localStorage.setItem('master_fines_arr', JSON.stringify(cleanCloudData(data.fines, 5, 4)));
+                if(data.notifications) localStorage.setItem('master_notifications_arr', JSON.stringify(cleanCloudData(data.notifications, 2, 3)));
 
                 checkAbsenteeFines(); 
 
@@ -512,7 +566,9 @@
             e.preventDefault();
             const dateInput = document.getElementById('notice-date').value;
             if(!dateInput) return;
-            const dateVal = new Date(dateInput + "T00:00:00").toLocaleDateString('en-US'); 
+            // Prevent timezone bugs
+            const dateObj = new Date(dateInput + "T00:00:00");
+            const dateVal = dateObj.toLocaleDateString('en-US'); 
             const typeVal = document.getElementById('notice-type').value;
             const msgVal = document.getElementById('notice-message').value;
             const uniqueId = Date.now();
@@ -543,11 +599,10 @@
             const yesterdayStr = yesterday.toLocaleDateString('en-US'); 
             const dayOfWeek = yesterday.getDay();
 
-            // Check if Sunday. If Sunday, was it declared a Special Working Day in the new Cloud table?
             if (dayOfWeek === 0) {
                 let notices = JSON.parse(localStorage.getItem('master_notifications_arr') || "[]");
                 let wasSpecialDay = notices.some(n => (n[0].includes("Half-Day") || n[0].includes("Mandatory")) && n[2] === yesterdayStr);
-                if(!wasSpecialDay) return; // Skip normal Sundays
+                if(!wasSpecialDay) return; 
             }
 
             let fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
@@ -594,14 +649,12 @@
                 const dateStr = checkDate.toLocaleDateString('en-US'); 
                 const dayOfWeek = checkDate.getDay();
                 
-                // SATURDAY IS NOT A WEEKEND
                 let isWeekend = (dayOfWeek === 0); 
                 let isFuture = checkDate > now;
                 let hasPunchedIn = false;
                 let isSpecialWorkingDay = false;
                 let specialMsg = "";
 
-                // Check Cloud Punches
                 for(let i=0; i<logs.length; i++) {
                     if(logs[i][1] == targetId && logs[i][4] == dateStr && logs[i][2].includes('Punch In')) {
                         hasPunchedIn = true;
@@ -609,7 +662,6 @@
                     }
                 }
                 
-                // Check Cloud Notifications
                 for(let i=0; i<notices.length; i++) {
                     if ((notices[i][0].includes("Half-Day") || notices[i][0].includes("Mandatory")) && notices[i][2] === dateStr) {
                         isSpecialWorkingDay = true;
@@ -799,7 +851,7 @@
                     if(status === "Approved") {
                         totalDeductions += parseInt(row[3]);
                     }
-                    fineHtml += `<tr><td>${row[2]}</td><td>₹${row[3]}</td><td>${row[5]}</td><td><span class="badge status-${status}">${status}</span></td></tr>`;
+                    fineHtml += `<tr><td>${row[2]}</td><td>₹${row[3]}</td><td>${getRelativeDateText(row[5])}</td><td><span class="badge status-${status}">${status}</span></td></tr>`;
                 }
             });
 
@@ -875,7 +927,7 @@
                 newNotificationsCount++;
                 let borderColor = row[0].includes("General") ? "#cbd5e1" : "#3b82f6";
                 alertItemsHTML += `<li class="notification-item" style="border-left:3px solid ${borderColor}; padding-left:5px;">
-                    <strong>📢 ${row[0]}</strong><br>${row[1]}<br><small style="color:#94a3b8;">Target Date: ${row[2]}</small>
+                    <strong>📢 ${row[0]}</strong><br>${row[1]}<br><small style="color:#94a3b8;">Target Date: ${getRelativeDateText(row[2])}</small>
                 </li>`;
             });
 
@@ -888,13 +940,13 @@
             }
         }
 
-        // ================= DRAW UI DATA =================
+        // ================= DRAW UI DATA WITH NEW SMART DATES =================
         function forceLocalSyncDraw() {
             const logBody = document.getElementById('log-table-body');
             if(logBody) {
                 const logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
                 logBody.innerHTML = logs.length === 0 ? `<tr><td colspan="5" style="text-align:center;">No entries active.</td></tr>` : 
-                    logs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td><span style="color:${row[2] && row[2].includes && row[2].includes('⚠️') ? '#ef4444' : '#1e293b'}; font-weight:600;">${row[2]}</span></td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
+                    logs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td><span style="color:${row[2] && row[2].includes && row[2].includes('⚠️') ? '#ef4444' : '#1e293b'}; font-weight:600;">${row[2]}</span></td><td>${row[3]}</td><td>${getRelativeDateText(row[4])}</td></tr>`).join('');
             }
 
             const adminLeaveBody = document.getElementById('admin-leave-table-body');
@@ -929,7 +981,7 @@
                 const notices = JSON.parse(localStorage.getItem('master_notifications_arr') || "[]");
                 noticesBody.innerHTML = notices.length === 0 ? `<tr><td colspan="4" style="text-align:center;">No cloud broadcasts active.</td></tr>` :
                     notices.map(row => {
-                        return `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td></tr>`;
+                        return `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${getRelativeDateText(row[2])}</td><td>${row[3]}</td></tr>`;
                     }).join('');
             }
 
