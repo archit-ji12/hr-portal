@@ -147,7 +147,7 @@
                 <li class="sidebar-item" id="nav-admin-dashboard" style="display: none;" onclick="switchTab('tab-admin-dashboard')">📊 Executive Workspace</li>
                 <li class="sidebar-item" id="nav-admin-broadcast" style="display: none;" onclick="switchTab('tab-admin-broadcast')">🔔 Broadcasts & Shifts</li>
                 <li class="sidebar-item" id="nav-admin-calendar" style="display: none;" onclick="switchTab('tab-admin-calendar')">📅 Absentee Calendar</li>
-                <li class="sidebar-item" id="nav-admin-fines" style="display: none;" onclick="switchTab('tab-admin-fines')">⚖️ Manage Fines</li>
+                <li class="sidebar-item" id="nav-admin-fines" style="display: none;" onclick="switchTab('tab-admin-fines')">⚖️ Manage Fines & Balances</li>
                 <li class="sidebar-item" id="nav-admin-notice" style="display: none;" onclick="switchTab('tab-admin-notice')">📢 Broadcast Notice PDF</li>
                 <li class="sidebar-item" id="nav-admin-logs" style="display: none;" onclick="switchTab('tab-admin-logs')">📋 Master Shift Logs</li>
                 <li class="sidebar-item" id="nav-admin-leaves" style="display: none;" onclick="switchTab('tab-admin-leaves')">📥 Review Leave Apps</li>
@@ -305,7 +305,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 6: ADMIN FINES -->
+                <!-- TAB 6: ADMIN FINES & BALANCES -->
                 <div id="tab-admin-fines" class="tab-content">
                     <div class="card card-full" style="border-left: 5px solid #ef4444;">
                         <h2>⚖️ Manage Salary Fines & Deductions</h2>
@@ -330,6 +330,16 @@
                             </form>
                         </div>
 
+                        <!-- NEW ADMIN FEATURE: EMPLOYEE BALANCE SUMMARY -->
+                        <h3 style="margin-top: 30px; font-size: 16px;">💰 Active Employee Balances</h3>
+                        <div class="table-container" style="margin-bottom: 30px;">
+                            <table>
+                                <thead><tr><th>Employee Name</th><th>Card ID</th><th>Base Salary</th><th>Approved Deductions</th><th>Net Payable</th></tr></thead>
+                                <tbody id="admin-balances-table-body"></tbody>
+                            </table>
+                        </div>
+
+                        <h3 style="font-size: 16px;">Detailed Fines Ledger</h3>
                         <div class="table-container">
                             <table>
                                 <thead><tr><th>Name</th><th>Card ID</th><th>Infraction Reason</th><th>Fine Amount</th><th>Status / Actions</th></tr></thead>
@@ -402,7 +412,7 @@
         </div>
     </div>
 
-    <!-- AI AGENT CHAT MODULE -->
+    <!-- AI AGENT CHAT MODULE (CLICK SYSTEM) -->
     <div class="chat-widget">
         <button class="chat-toggle" onclick="toggleChatWindow()">🤖</button>
         <div class="chat-box" id="hrms-ai-box">
@@ -429,7 +439,6 @@
         });
 
         // ================= SMART DATE FORMATTER =================
-        // Formats the Cloud Date into "Today", "Yesterday", or "Jun 20, 2026"
         function getRelativeDateText(dateStr) {
             if(!dateStr) return "";
             let d = new Date(dateStr);
@@ -512,7 +521,6 @@
         }
 
         // ================= CLOUD DATA SCRUBBER =================
-        // Cleans up Google Sheets "Machine Timestamps" into perfect readable dates instantly
         function cleanCloudData(arr, dateIndex, timeIndex) {
             return arr.map(row => {
                 if(dateIndex !== null && row[dateIndex]) {
@@ -536,7 +544,6 @@
                 let response = await fetch(GOOGLE_DATABASE_URL + "?nocache=" + new Date().getTime());
                 let data = await response.json();
                 
-                // Save and scrub the data instantly
                 if(data.logs) localStorage.setItem('master_attendance_logs_arr', JSON.stringify(cleanCloudData(data.logs, 4, 3)));
                 if(data.leaves) localStorage.setItem('master_leaves_logs_arr', JSON.stringify(cleanCloudData(data.leaves, null, 3)));
                 if(data.fines) localStorage.setItem('master_fines_arr', JSON.stringify(cleanCloudData(data.fines, 5, 4)));
@@ -561,12 +568,11 @@
             }
         }
 
-        // ================= SPECIAL SHIFT BROADCAST (CLOUD ADMIN) =================
+        // ================= SPECIAL SHIFT BROADCAST =================
         function sendShiftNotice(e) {
             e.preventDefault();
             const dateInput = document.getElementById('notice-date').value;
             if(!dateInput) return;
-            // Prevent timezone bugs
             const dateObj = new Date(dateInput + "T00:00:00");
             const dateVal = dateObj.toLocaleDateString('en-US'); 
             const typeVal = document.getElementById('notice-type').value;
@@ -721,7 +727,7 @@
             });
         }
 
-        // ================= EMPLOYEE FUNCTIONS =================
+        // ================= STRICT EMPLOYEE PUNCH LOCKOUT =================
         function checkPunches() {
             if(currentUser.role !== 'employee') return;
             const today = new Date().toLocaleDateString('en-US'); 
@@ -750,6 +756,11 @@
         }
 
         function recordAttendance(action) {
+            // Instant UI Freeze to prevent double-clicks
+            const btn = document.getElementById(action === 'Punch In' ? 'btn-punch-in' : 'btn-punch-out');
+            if (btn.disabled) return; 
+            btn.disabled = true; 
+
             const now = new Date();
             const today = now.toLocaleDateString('en-US'); 
             const time = now.toLocaleTimeString('en-US');
@@ -860,6 +871,34 @@
             
             const netPay = BASE_SALARY - totalDeductions;
             document.getElementById('emp-net-salary').innerText = `₹${netPay}`;
+        }
+
+        // ================= ADMIN BALANCES =================
+        function renderAdminBalances() {
+            const fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
+            let empMap = {};
+            
+            // Hardcode known active employee ID for immediate tracking
+            empMap["1001"] = { name: "Parthik Pokhriyal", deductions: 0 };
+            
+            fines.forEach(row => {
+                let empName = row[0];
+                let empId = row[1];
+                let status = row[6] || "Pending";
+                if (!empMap[empId]) empMap[empId] = { name: empName, deductions: 0 };
+                if (status === "Approved") {
+                    empMap[empId].deductions += parseInt(row[3]) || 0;
+                }
+            });
+
+            let html = "";
+            for (let id in empMap) {
+                let net = BASE_SALARY - empMap[id].deductions;
+                html += `<tr><td><strong>${empMap[id].name}</strong></td><td>${id}</td><td>₹${BASE_SALARY}</td><td style="color:#ef4444; font-weight:bold;">- ₹${empMap[id].deductions}</td><td style="color:#10b981; font-weight:bold;">₹${net}</td></tr>`;
+            }
+
+            const tbody = document.getElementById('admin-balances-table-body');
+            if (tbody) tbody.innerHTML = html;
         }
 
         // ================= LEAVES ENGINE =================
@@ -995,6 +1034,10 @@
                     }).join('');
                 }
                 renderEmployeeSalary();
+            }
+
+            if(currentUser && currentUser.role === 'admin') {
+                renderAdminBalances();
             }
         }
 
