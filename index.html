@@ -99,7 +99,6 @@
         .chat-ai { background: white; border: 1px solid #e2e8f0; align-self: flex-start; color: #334155;}
         .chat-user { background: #2563eb; color: white; align-self: flex-end; }
         
-        /* New Clickable Chat Options */
         .chat-options { padding: 12px; background: white; border-top: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; }
         .chat-chip { background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; font-size: 12px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 600; }
         .chat-chip:hover { background: #e2e8f0; border-color: #94a3b8; }
@@ -178,12 +177,12 @@
             <div class="workspace-panel">
                 <!-- ================= EMPLOYEE VIEWS ================= -->
                 
-                <!-- TAB 1: ATTENDANCE (EMPLOYEES ONLY) -->
+                <!-- TAB 1: ATTENDANCE -->
                 <div id="tab-attendance" class="tab-content">
                     <div class="card">
                         <h2>Mark Daily Attendance Shift</h2>
                         <p>Current Status: <strong id="punch-status-text" style="color: #64748b;">Ready to Log</strong></p>
-                        <p style="font-size: 12px; color: #ef4444; margin-top: 8px;">*Warning: Late arrivals (>1:00 PM) or early departures (<8:00 PM) incur a ₹284 fine. Missing a full day incurs a ₹584 fine.</p>
+                        <p style="font-size: 12px; color: #ef4444; margin-top: 8px;">*Warning: Late arrivals (>1:00 PM) or early departures (<8:00 PM) incur a ₹284 fine. Missing a full weekday incurs a ₹584 fine.</p>
                         <div style="display: flex; gap: 15px; margin-top: 15px;">
                             <button id="btn-punch-in" onclick="recordAttendance('Punch In')">Punch In</button>
                             <button id="btn-punch-out" class="btn-punch-out" onclick="recordAttendance('Punch Out')">Punch Out</button>
@@ -191,7 +190,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 2: EMPLOYEE LEAVES (EMPLOYEES ONLY) -->
+                <!-- TAB 2: EMPLOYEE LEAVES -->
                 <div id="tab-leave-apply" class="tab-content">
                     <div class="card">
                         <h2>File Leave Application</h2>
@@ -214,7 +213,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: EMPLOYEE SALARY (EMPLOYEES ONLY) -->
+                <!-- TAB 3: EMPLOYEE SALARY -->
                 <div id="tab-emp-salary" class="tab-content">
                     <div class="card card-full">
                         <h2>💰 My Monthly Salary Overview</h2>
@@ -247,7 +246,7 @@
 
                 <!-- ================= ADMIN VIEWS ================= -->
 
-                <!-- TAB 4: ADMIN DASHBOARD (ADMINS ONLY) -->
+                <!-- TAB 4: ADMIN DASHBOARD -->
                 <div id="tab-admin-dashboard" class="tab-content">
                     <div class="card card-full" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #2563eb;">
                         <h2>Executive Management Workspace</h2>
@@ -256,7 +255,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 5: ABSENTEE CALENDAR (ADMINS ONLY) -->
+                <!-- TAB 5: ABSENTEE CALENDAR -->
                 <div id="tab-admin-calendar" class="tab-content">
                     <div class="card card-full">
                         <h2>📅 Employee Absentee Tracker</h2>
@@ -272,21 +271,19 @@
                         <div class="calendar-grid">
                             <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div>
                             <div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>
-                            <!-- Days injected via JS -->
                         </div>
                         <div id="calendar-days-container" class="calendar-grid" style="margin-top: 0;"></div>
                     </div>
                 </div>
 
-                <!-- TAB 6: ADMIN FINES & SALARY (ADMINS ONLY) -->
+                <!-- TAB 6: ADMIN FINES (CLOUD COMPUTED) -->
                 <div id="tab-admin-fines" class="tab-content">
                     <div class="card card-full" style="border-left: 5px solid #ef4444;">
                         <h2>⚖️ Manage Salary Fines & Deductions</h2>
-                        <p>Automated fines arrive as "Pending". You must explicitly Approve them to deduct from the ₹17,000 base salary. You can also add custom deductions below.</p>
+                        <p>Automated fines arrive as "Pending". You must explicitly Approve them to deduct from the ₹17,000 base salary. Custom deductions log as Approved automatically.</p>
                         
-                        <!-- Admin Custom Fine Form -->
                         <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
-                            <h3 style="font-size: 15px; margin-bottom: 10px;">➕ Add Custom Deduction</h3>
+                            <h3 style="font-size: 15px; margin-bottom: 10px;">➕ Add Custom Cloud Deduction</h3>
                             <form onsubmit="addCustomFine(event)" style="display: flex; gap: 10px; align-items: flex-end;">
                                 <div style="flex: 1;">
                                     <label>Employee</label>
@@ -300,7 +297,7 @@
                                     <label>Amount (₹)</label>
                                     <input type="number" id="custom-fine-amount" placeholder="500" required>
                                 </div>
-                                <button type="submit" style="width: auto; margin-top: 0;">Deduct</button>
+                                <button type="submit" style="width: auto; margin-top: 0;">Push to Cloud & Deduct</button>
                             </form>
                         </div>
 
@@ -313,11 +310,11 @@
                     </div>
                 </div>
 
-                <!-- TAB 7: PDF NOTICE GENERATOR (ADMINS ONLY) -->
+                <!-- TAB 7: PDF NOTICE -->
                 <div id="tab-admin-notice" class="tab-content">
                     <div class="card card-full">
                         <h2>📢 Broadcast Official Notice (PDF)</h2>
-                        <p>Draft an official company notice. Clicking "Generate PDF" will automatically format it onto a corporate letterhead and download the document securely.</p>
+                        <p>Draft an official company notice. Clicking "Generate PDF" will automatically format it onto a corporate letterhead.</p>
                         <label>Notice Subject / Title</label>
                         <input type="text" id="pdf-subject-input" placeholder="e.g. Mandatory Policy Update Regarding Weekend Shifts" required>
                         <label>Official Notice Content</label>
@@ -326,7 +323,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 8: ADMIN SHIFT LOGS (ADMINS ONLY) -->
+                <!-- TAB 8: SHIFT LOGS -->
                 <div id="tab-admin-logs" class="tab-content">
                     <div class="card card-full">
                         <h2>Master Employee Attendance Logs</h2>
@@ -339,7 +336,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 9: ADMIN LEAVE APPROVALS (ADMINS ONLY) -->
+                <!-- TAB 9: LEAVE APPROVALS -->
                 <div id="tab-admin-leaves" class="tab-content">
                     <div class="card card-full">
                         <h2>Review Pending Staff Leave Board</h2>
@@ -384,10 +381,9 @@
             <div class="chat-messages" id="chat-messages-scroll">
                 <div class="chat-msg chat-ai">Greetings! I am your AI assistant. Click an option below to learn about the system rules.</div>
             </div>
-            <!-- Interactive Clickable Options (No Typing Needed!) -->
             <div class="chat-options">
                 <button class="chat-chip" onclick="triggerBotQuery('What are the Penalty and Fine Rules?', 'Late arrival (>1:00 PM) or early departure (<8:00 PM) is a ₹284 fine. Missing a full weekday triggers a ₹584 fine automatically. All fines require Admin approval.')">❓ What are the Penalty and Fine Rules?</button>
-                <button class="chat-chip" onclick="triggerBotQuery('How is my Salary calculated?', 'Base salary is ₹17,000. Any fine that is explicitly Approved by the CEO is deducted from this total to calculate your Net Payable salary.')">💰 How is my Salary calculated?</button>
+                <button class="chat-chip" onclick="triggerBotQuery('How is my Salary calculated?', 'Base salary is ₹17,000. Any fine that is explicitly Approved by the CEO in the cloud is deducted from this total to calculate your Net Payable salary.')">💰 How is my Salary calculated?</button>
                 <button class="chat-chip" onclick="triggerBotQuery('How do I generate an official Notice?', 'If you are an Admin, navigate to the Broadcast Notice tab. Enter the details and click Generate to download a formatted PDF letterhead instantly.')">📄 How do I generate an official Notice?</button>
                 <button class="chat-chip" onclick="triggerBotQuery('How does the Absentee Calendar work?', 'The calendar automatically scans attendance logs. If an employee did not punch in on a weekday, the day turns Red. Weekends remain Yellow.')">📅 How does the Absentee Calendar work?</button>
                 <button class="chat-chip" onclick="triggerBotQuery('I forgot my login password.', 'For strict corporate security, passwords are never shared in this chat. If you have lost your access keys, please contact IT Administration.')">🔒 I forgot my login password.</button>
@@ -401,7 +397,7 @@
         let currentUser = null;
 
         window.addEventListener('DOMContentLoaded', () => {
-            setInterval(() => { document.getElementById('live-header-clock').innerText = "🕒 " + new Date().toLocaleTimeString(); }, 1000);
+            setInterval(() => { document.getElementById('live-header-clock').innerText = "🕒 " + new Date().toLocaleTimeString('en-US'); }, 1000);
         });
 
         function switchTab(tabId) {
@@ -471,20 +467,21 @@
             }
         }
 
+        // ================= GLOBAL CLOUD SYNC (WITH CACHE-BUSTER) =================
         async function syncDatabaseGlobal() {
             try {
                 const syncBtn = document.getElementById('sync-btn');
                 if(syncBtn) syncBtn.innerText = "⏳ Downloading Cloud Data...";
 
-                let response = await fetch(GOOGLE_DATABASE_URL);
+                // Adding a timestamp prevents the browser from loading cached, old data!
+                let response = await fetch(GOOGLE_DATABASE_URL + "?nocache=" + new Date().getTime());
                 let data = await response.json();
                 
                 if(data.logs && data.logs.length > 0) localStorage.setItem('master_attendance_logs_arr', JSON.stringify(data.logs));
                 if(data.leaves && data.leaves.length > 0) localStorage.setItem('master_leaves_logs_arr', JSON.stringify(data.leaves));
                 if(data.fines && data.fines.length > 0) localStorage.setItem('master_fines_arr', JSON.stringify(data.fines));
 
-                // NEW: Scan for Midnight Absentee Fines automatically
-                checkAbsenteeFines();
+                checkAbsenteeFines(); 
 
                 forceLocalSyncDraw();
                 if(currentUser && currentUser.role === 'employee') {
@@ -494,45 +491,41 @@
                 
                 if(syncBtn) syncBtn.innerText = "🔄 Quick Force Sync Refresh";
             } catch (err) {
-                console.log("Cloud sync offline. Using local cache.");
+                console.log("Cloud sync delayed. Using local cache.");
                 if(document.getElementById('sync-btn')) document.getElementById('sync-btn').innerText = "🔄 Quick Force Sync Refresh";
-                
-                checkAbsenteeFines(); // Still run absentee check on local data
+                checkAbsenteeFines();
                 forceLocalSyncDraw();
             }
         }
 
         // ================= AUTOMATED ABSENTEE FINE ENGINE =================
         function checkAbsenteeFines() {
-            // Checks if the employee missed a punch yesterday
             const empId = "1001";
             const empName = "Parthik Pokhriyal";
 
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayStr = yesterday.toLocaleDateString();
+            const yesterdayStr = yesterday.toLocaleDateString('en-US'); 
             const dayOfWeek = yesterday.getDay();
 
             // Skip weekends (Sunday = 0, Saturday = 6)
             if (dayOfWeek === 0 || dayOfWeek === 6) return;
 
             let fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
-            // Check if already fined for absent yesterday to prevent duplicates
             let alreadyFined = fines.some(f => f[1] === empId && f[5] === yesterdayStr && f[2] === "Missed Shift (Absent)");
             if (alreadyFined) return;
 
-            // Check if they actually punched in yesterday
             let logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
             let punchedYesterday = logs.some(l => l[1] === empId && l[4] === yesterdayStr && l[2].includes('Punch In'));
 
             if (!punchedYesterday) {
-                // Generate Automatic ₹584 Fine
                 const uniqueFineId = Date.now() + Math.floor(Math.random() * 1000);
                 const fineRow = [empName, empId, "Missed Shift (Absent)", 584, "23:59:00", yesterdayStr, "Pending", uniqueFineId];
                 
                 fines.unshift(fineRow);
                 localStorage.setItem('master_fines_arr', JSON.stringify(fines));
 
+                // Cloud Push
                 fetch(GOOGLE_DATABASE_URL, { 
                     method: "POST", mode: "no-cors", 
                     body: JSON.stringify({ targetTable: "fines", actionType: "insert", rowData: fineRow })
@@ -540,7 +533,7 @@
             }
         }
 
-        /* ------------------ CALENDAR LOGIC ------------------ */
+        // ================= CALENDAR LOGIC (STANDARDIZED DATES) =================
         function renderCalendar() {
             const targetId = document.getElementById('calendar-emp-select').value;
             const logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
@@ -559,7 +552,7 @@
 
             for(let day = 1; day <= daysInMonth; day++) {
                 const checkDate = new Date(year, month, day);
-                const dateStr = checkDate.toLocaleDateString();
+                const dateStr = checkDate.toLocaleDateString('en-US'); 
                 const dayOfWeek = checkDate.getDay();
                 
                 let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
@@ -595,6 +588,7 @@
             document.getElementById('calendar-days-container').innerHTML = html;
         }
 
+        // ================= PDF LOGIC =================
         function generateNoticePDF() {
             const subject = document.getElementById('pdf-subject-input').value.trim();
             const body = document.getElementById('pdf-body-input').value.trim();
@@ -618,10 +612,10 @@
             });
         }
 
-        // --- EMPLOYEE FUNCTIONS ---
+        // ================= EMPLOYEE FUNCTIONS =================
         function checkPunches() {
             if(currentUser.role !== 'employee') return;
-            const today = new Date().toLocaleDateString();
+            const today = new Date().toLocaleDateString('en-US'); 
             const hasIn = localStorage.getItem(`in_${currentUser.id}_${today}`);
             const hasOut = localStorage.getItem(`out_${currentUser.id}_${today}`);
             
@@ -640,8 +634,8 @@
 
         function recordAttendance(action) {
             const now = new Date();
-            const today = now.toLocaleDateString();
-            const time = now.toLocaleTimeString();
+            const today = now.toLocaleDateString('en-US'); 
+            const time = now.toLocaleTimeString('en-US');
             const currentHour = now.getHours(); 
             
             let fineAmount = 0;
@@ -679,7 +673,7 @@
             forceLocalSyncDraw();
         }
 
-        // --- FINES & SALARY ENGINE ---
+        // ================= FINES & SALARY ENGINE (CLOUD SECURED) =================
         function addCustomFine(e) {
             e.preventDefault();
             const empId = document.getElementById('custom-fine-emp').value;
@@ -688,14 +682,15 @@
             const amount = parseInt(document.getElementById('custom-fine-amount').value);
             const uniqueFineId = Date.now();
             
-            const fineRow = [empName, empId, reason, amount, new Date().toLocaleTimeString(), new Date().toLocaleDateString(), "Approved", uniqueFineId];
+            const fineRow = [empName, empId, reason, amount, new Date().toLocaleTimeString('en-US'), new Date().toLocaleDateString('en-US'), "Approved", uniqueFineId];
             let finesArr = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
             finesArr.unshift(fineRow);
             localStorage.setItem('master_fines_arr', JSON.stringify(finesArr));
 
+            // Cloud Push Insert
             fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "fines", actionType: "insert", rowData: fineRow }) });
             
-            alert(`Custom deduction of ₹${amount} applied successfully!`);
+            alert(`Custom deduction of ₹${amount} pushed to Cloud successfully!`);
             e.target.reset();
             forceLocalSyncDraw();
         }
@@ -709,6 +704,13 @@
                 }
             }
             localStorage.setItem('master_fines_arr', JSON.stringify(fines));
+            
+            // Cloud Push Update (Ensures Employees see it instantly on next load)
+            fetch(GOOGLE_DATABASE_URL, { 
+                method: "POST", mode: "no-cors", 
+                body: JSON.stringify({ targetTable: "fines", actionType: "updateFine", id: uniqueId, status: finalStatus }) 
+            });
+
             forceLocalSyncDraw();
         }
 
@@ -735,13 +737,12 @@
             document.getElementById('emp-net-salary').innerText = `₹${netPay}`;
         }
 
-
-        // --- LEAVES ENGINE ---
+        // ================= LEAVES ENGINE =================
         function submitLeaveRequest(e) {
             e.preventDefault();
             const uniqueId = Date.now();
             const timeline = document.getElementById('form-leave-start').value;
-            const timeField = new Date().toLocaleTimeString();
+            const timeField = new Date().toLocaleTimeString('en-US');
             const rowData = [currentUser.name, "Leave Request", timeline, timeField, "Pending", uniqueId];
             
             let leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
@@ -766,6 +767,7 @@
             localStorage.setItem('master_leaves_logs_arr', JSON.stringify(leaves));
             forceLocalSyncDraw();
             
+            // Cloud Push Update Leave
             fetch(GOOGLE_DATABASE_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ targetTable: "leaves", actionType: "updateLeave", id: uniqueId, status: finalStatus }) });
         }
 
@@ -798,8 +800,8 @@
             }
         }
 
+        // ================= DRAW UI DATA =================
         function forceLocalSyncDraw() {
-            // Logs
             const logBody = document.getElementById('log-table-body');
             if(logBody) {
                 const logs = JSON.parse(localStorage.getItem('master_attendance_logs_arr') || "[]");
@@ -807,7 +809,6 @@
                     logs.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td><span style="color:${row[2] && row[2].includes && row[2].includes('⚠️') ? '#ef4444' : '#1e293b'}; font-weight:600;">${row[2]}</span></td><td>${row[3]}</td><td>${row[4]}</td></tr>`).join('');
             }
 
-            // Leaves
             const adminLeaveBody = document.getElementById('admin-leave-table-body');
             if(adminLeaveBody) {
                 const leaves = JSON.parse(localStorage.getItem('master_leaves_logs_arr') || "[]");
@@ -821,7 +822,6 @@
                     }).join('');
             }
 
-            // Fines Ledger
             const finesBody = document.getElementById('admin-fines-table-body');
             if(finesBody) {
                 const fines = JSON.parse(localStorage.getItem('master_fines_arr') || "[]");
@@ -836,7 +836,6 @@
                     }).join('');
             }
 
-            // Employee UI Updates
             if(currentUser && currentUser.role === 'employee') {
                 const empPersonalBody = document.getElementById('emp-personal-leave-tbody');
                 if(empPersonalBody) {
@@ -850,10 +849,6 @@
             }
         }
 
-        function clearLocalLogs(target) {
-            // Internal caching clearing for developer ease. Does not erase Google Sheets.
-        }
-
         /* NEW CLICK-STYLE AI ENGINE CHATBOT */
         function toggleChatWindow() { 
             const el = document.getElementById('hrms-ai-box'); 
@@ -862,11 +857,9 @@
         
         function triggerBotQuery(question, answer) {
             const scroller = document.getElementById('chat-messages-scroll');
-            // Insert User Question
             scroller.innerHTML += `<div class="chat-msg chat-user">${question}</div>`;
             scroller.scrollTop = scroller.scrollHeight;
 
-            // Delayed Bot Answer
             setTimeout(() => {
                 scroller.innerHTML += `<div class="chat-msg chat-ai">${answer}</div>`;
                 scroller.scrollTop = scroller.scrollHeight;
